@@ -170,6 +170,56 @@ export class ZipformsService {
       }
     }
   }
+  async viewAllTransactions(
+    contextId: string,
+    sharedKey: string,
+   
+  ): Promise<any> {
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Auth-ContextId': contextId, // Custom header for the context ID
+      'X-Auth-SharedKey': sharedKey, // Custom header for the shared key
+    };
+
+    try {
+      const url = this.configService.get<string>('ZIPFORM_URL');
+
+      const zipFormsUrl = `${url}/transactions`; // Replace with the correct endpoint
+
+      const response = await firstValueFrom(
+        this.httpService.get(zipFormsUrl, {
+          headers,
+        }),
+      );
+      return response.data; // Return the transaction data
+    } catch (error) {
+      // Handle errors appropriately
+      if (error.response) {
+        // Extract status code from the 3rd party API response
+        const statusCode = error.response.status;
+        
+        // Handle specific status codes
+        if (statusCode === 404) {
+          throw new NotFoundException(`Failed to fetch Transactions`);
+        } else if (statusCode === 401 || statusCode === 403) {
+          throw new UnauthorizedException('Authentication failed or insufficient permissions');
+        } else {
+          // Handle other status codes with original error message
+          const errorMessage = error.response.data?.error || 
+                             error.response.data?.message || 
+                             'An error occurred with the transaction service';
+          throw new HttpException(errorMessage, statusCode);
+        }
+      } else if (error.request) {
+        // The request was made but no response was received (e.g., network error)
+        throw new ServiceUnavailableException('Transaction service unavailable');
+      } else {
+        // Something else happened while setting up the request
+        throw new InternalServerErrorException('Error setting up transaction request');
+      }
+    }
+  }
+  
   async viewTransactionData(
     contextId: string,
     sharedKey: string,
@@ -191,7 +241,6 @@ export class ZipformsService {
           headers,
         }),
       );
-
 
       return response.data; // Return the transaction data
     } catch (error) {
