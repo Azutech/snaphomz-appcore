@@ -7,6 +7,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ZipformsService } from './zipforms.service';
 import { FormAuthDto } from './dto/form.dto';
@@ -76,6 +77,7 @@ export class ZipformsController {
   async allforms(
     @Headers('X-Auth-ContextId') contextId: string,
     @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Query('transactionId') transactionId: string,
   ) {
     if (!contextId || !sharedKey) {
       throw new HttpException(
@@ -87,6 +89,32 @@ export class ZipformsController {
     const result = await this.zipformsService.viewAllForms(
       contextId,
       sharedKey,
+      transactionId,
+    );
+
+    return {
+      status: 'success',
+      data: result,
+    };
+  }
+
+  @Get('viewTransactionData')
+  async viewTransactionData(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Query('transactionId') transactionId: string,
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const result = await this.zipformsService.viewTransactionData(
+      contextId,
+      sharedKey,
+      transactionId,
     );
 
     return {
