@@ -21,6 +21,8 @@ import { MailDispatcherDto } from 'src/services/email/dto/mail.dto';
 import { accountVerification } from 'src/services/email/templates/sendMailVerification';
 import { resendVerification } from 'src/services/email/templates/resendMailVerification';
 import { ConfigService } from '@nestjs/config';
+import { accountVerificationAgent } from 'src/services/email/templates/sendMailVerificationAgent';
+import { resendVerificationAgent } from 'src/services/email/templates/resendMailVerificationAgent';
 
 
 @Injectable()
@@ -589,21 +591,20 @@ export class AuthService {
       verification_code: token,
       token_expiry_time: moment().add(10, 'minutes').toDate(),
     });
-    // await this.emailService.sendEmail({
-    //   email: emailDto.email,
-    //   subject: 'Welcome to OCReal',
-    //   template: 'welcome',
-    //   body: {
-    //     verificationCode: token,
-    //     fullname: 'User',
-    //   },
-    // });
+    function emailDispatcherPayload(): MailDispatcherDto {
+      return {
+        to: agentExistis.email,
+        from: 'contact@ocreal.online',
+        subject: 'Welcome to OCReal',
+        html: resendVerification(token),
+      };
+    }
+    await this.emailService.emailDispatcher(emailDispatcherPayload());
     return { token };
   }
 
   async resendUserVerificationEmail({ email }): Promise<any> {
     const user = await this.userModel.findOne({ email });
-    console.log(user, '  ::: THE DTO   :::');
     if (!user) throw new BadRequestException("User doesn't exist");
     const token = await this._generateUserEmailToken();
     await this.userModel.findByIdAndUpdate(user.id, {
@@ -611,21 +612,13 @@ export class AuthService {
       verification_code: token,
       token_expiry_time: moment().add(10, 'minutes').toDate(),
     });
-    // await this.emailService.sendEmail({
-    //   email: email,
-    //   subject: 'Welcome to OCReal',
-    //   template: 'resend_code',
-    //   body: {
-    //     verificationCode: token,
-    //     fullname: user.fullname || 'User',
-    //   },
-    // });
+
 
     function emailDispatcherPayload(): MailDispatcherDto {
       return {
         to: user.email,
         from: 'contact@ocreal.online',
-        subject: 'Welcome to OCReal',
+        subject: `Your Verification Code – Complete Your Registration`,
         html: resendVerification(token),
       };
     }
@@ -647,15 +640,18 @@ export class AuthService {
       verification_code: token,
       token_expiry_time: moment().add(10, 'minutes').toDate(),
     });
-    // await this.emailService.sendEmail({
-    //   email: emailDto.email,
-    //   subject: 'Welcome to OCReal',
-    //   template: 'resend_code',
-    //   body: {
-    //     verificationCode: token,
-    //     fullname: agent.fullname || 'User',
-    //   },
-    // });
+    const url = `${this.configService.get<string>('BASE_URL')}`;
+
+    const link = `${url}/auth/user/verify/code`
+    function emailDispatcherPayload(): MailDispatcherDto {
+      return {
+        to: emailDto.email,
+        from: 'contact@ocreal.online',
+        subject: `Didn't Receive Your Verification Code? Here's a New One!`,
+        html: resendVerificationAgent(token),
+      };
+    }
+    await this.emailService.emailDispatcher(emailDispatcherPayload());
     return { token };
   }
 

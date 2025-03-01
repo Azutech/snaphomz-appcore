@@ -138,7 +138,7 @@ export const accountVerification = (verification_code: string, link : string): s
             .map((digit) => `<span>${digit}</span>`)
             .join('')}
         </div>
-        <p>This code will only be valid for the next 5 minutes. If the code does not work, you can use this login verification link:</p>
+        <p>This code will only be valid for the next 10 minutes. If the code does not work, you can use this login verification link:</p>
         <a href="${link}" class="button">Verify Email</a>
         <div class="signature">
           <p>Thanks,</p>
