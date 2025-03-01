@@ -36,7 +36,7 @@ export class UsersController {
     this._sendResponse({
       res,
       data,
-      message: 'Email sent successfully',
+      message: 'OnBorading completed Successfully',
     });
   }
 

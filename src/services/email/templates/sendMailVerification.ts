@@ -1,4 +1,4 @@
-export const accountVerification = (verification_code: string): string => {
+export const accountVerification = (verification_code: string, link : string): string => {
   return `
   <!DOCTYPE html>
   <html lang="en">
@@ -139,7 +139,7 @@ export const accountVerification = (verification_code: string): string => {
             .join('')}
         </div>
         <p>This code will only be valid for the next 5 minutes. If the code does not work, you can use this login verification link:</p>
-        <a href="#" class="button">Verify Email</a>
+        <a href="${link}" class="button">Verify Email</a>
         <div class="signature">
           <p>Thanks,</p>
           <p class="company-name">Snaphomz</p>

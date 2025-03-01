@@ -20,8 +20,8 @@ import { AccountTypeEnum } from 'src/constants';
 import { MailDispatcherDto } from 'src/services/email/dto/mail.dto';
 import { accountVerification } from 'src/services/email/templates/sendMailVerification';
 import { resendVerification } from 'src/services/email/templates/resendMailVerification';
-resendVerification;
-accountVerification;
+import { ConfigService } from '@nestjs/config';
+
 
 @Injectable()
 export class AuthService {
@@ -29,7 +29,10 @@ export class AuthService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly emailService: EmailService,
     @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
+    private readonly configService: ConfigService
+
   ) {}
+
 
   async googleValidateUser(payload: {
     user: {
@@ -278,24 +281,17 @@ export class AuthService {
       token_expiry_time: moment().add(10, 'minutes').toDate(),
     });
 
-    // await user.save()
-    // await this.emailService.sendEmail({
-    //   email: emailDto.email,
-    //   subject: 'Welcome to OCReal',
-    //   template: 'welcome',
-    //   body: {
-    //     verification_code: token,
-    //     fullname: 'User',
-    //   },
-    // });
-    // return { token };
+    await user.save()
 
+    const url = `${this.configService.get<string>('BASE_URL')}`;
+
+    const link = `${url}/auth/user/verify/code`
     function emailDispatcherPayload(): MailDispatcherDto {
       return {
         to: emailDto.email,
         from: 'contact@ocreal.online',
         subject: 'Welcome to OCReal',
-        html: accountVerification(token),
+        html: accountVerification(token, link),
       };
     }
     await this.emailService.emailDispatcher(emailDispatcherPayload());
@@ -672,7 +668,7 @@ export class AuthService {
   private async _generateUserEmailToken(): Promise<string> {
     let token: undefined | string = undefined;
     while (!token) {
-      token = verificationTokenGen(6);
+      token = verificationTokenGen(4);
       const tokenExists = await this.userModel.findOne({
         verification_code: token,
         token_expiry_time: { $gte: moment().toDate() },
@@ -686,7 +682,7 @@ export class AuthService {
   private async _generateAgentEmailToken(): Promise<string> {
     let token: undefined | string = undefined;
     while (!token) {
-      token = verificationTokenGen(6);
+      token = verificationTokenGen(4);
       const tokenExists = await this.agentModel.findOne({
         verification_code: token,
         token_expiry_time: { $gte: moment().toDate() },
