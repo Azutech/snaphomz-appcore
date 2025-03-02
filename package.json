@@ -36,6 +36,7 @@
     "@nestjs/platform-socket.io": "^10.3.4",
     "@nestjs/schedule": "^4.0.2",
     "@nestjs/websockets": "^10.3.4",
+    "@onesignal/node-onesignal": "^5.0.0-alpha-02",
     "@types/axios": "^0.14.0",
     "@types/moment": "^2.13.0",
     "@vendia/serverless-express": "^4.12.6",

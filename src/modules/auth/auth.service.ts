@@ -24,17 +24,14 @@ import { ConfigService } from '@nestjs/config';
 import { accountVerificationAgent } from 'src/services/email/templates/sendMailVerificationAgent';
 import { resendVerificationAgent } from 'src/services/email/templates/resendMailVerificationAgent';
 
-
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<User>,
     private readonly emailService: EmailService,
     @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
-    private readonly configService: ConfigService
-
+    private readonly configService: ConfigService,
   ) {}
-
 
   async googleValidateUser(payload: {
     user: {
@@ -283,11 +280,11 @@ export class AuthService {
       token_expiry_time: moment().add(10, 'minutes').toDate(),
     });
 
-    await user.save()
+    await user.save();
 
     const url = `${this.configService.get<string>('BASE_URL')}`;
 
-    const link = `${url}/auth/user/verify/code`
+    const link = `${url}/auth/user/verify/code`;
     function emailDispatcherPayload(): MailDispatcherDto {
       return {
         to: emailDto.email,
@@ -613,7 +610,6 @@ export class AuthService {
       token_expiry_time: moment().add(10, 'minutes').toDate(),
     });
 
-
     function emailDispatcherPayload(): MailDispatcherDto {
       return {
         to: user.email,
@@ -642,7 +638,7 @@ export class AuthService {
     });
     const url = `${this.configService.get<string>('BASE_URL')}`;
 
-    const link = `${url}/auth/user/verify/code`
+    const link = `${url}/auth/user/verify/code`;
     function emailDispatcherPayload(): MailDispatcherDto {
       return {
         to: emailDto.email,

@@ -1,5 +1,5 @@
 export const resendVerificationAgent = (verification_code: string): string => {
-    return `
+  return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -160,5 +160,4 @@ export const resendVerificationAgent = (verification_code: string): string => {
     </body>
     </html>
       `;
-  };
-  
+};

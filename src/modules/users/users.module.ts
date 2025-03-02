@@ -9,6 +9,15 @@ import { EmailService } from 'src/services/email/email.service';
 import { AgentOrSellerSocketAuthGuard } from 'src/guards/jw.socket.gaurd';
 import { Agent } from 'http';
 import { AgentSchema } from '../agent/schema/agent.schema';
+import NotificationService from '../notification/notitifcation.service';
+import {
+  Notification,
+  NotificationSchema,
+} from '../notification/schema/notification.schema';
+import {
+  UserNotificationTokens,
+  UserNotificationTokensSchema,
+} from '../notification/schema/userNotificationsTokens.schema';
 
 @Module({
   imports: [
@@ -16,10 +25,20 @@ import { AgentSchema } from '../agent/schema/agent.schema';
       { name: User.name, schema: UserSchema },
       { name: UserDocument.name, schema: UserDocumentSchema },
       { name: Agent.name, schema: AgentSchema },
+      { name: Notification.name, schema: NotificationSchema },
+      {
+        name: UserNotificationTokens.name,
+        schema: UserNotificationTokensSchema,
+      },
     ]),
     EmailModule,
   ],
   controllers: [UsersController],
-  providers: [UsersService, EmailService, AgentOrSellerSocketAuthGuard],
+  providers: [
+    UsersService,
+    EmailService,
+    NotificationService,
+    AgentOrSellerSocketAuthGuard,
+  ],
 })
 export class UsersModule {}

@@ -1,4 +1,12 @@
-import { Injectable, HttpException, HttpStatus, InternalServerErrorException, ServiceUnavailableException,  UnauthorizedException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  InternalServerErrorException,
+  ServiceUnavailableException,
+  UnauthorizedException,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { FormAuthDto, FormDto } from './dto/form.dto';
 import { HttpService } from '@nestjs/axios';
@@ -99,17 +107,20 @@ export class ZipformsService {
       if (error.response) {
         // Extract status code from the 3rd party API response
         const statusCode = error.response.status;
-        
+
         // Handle specific status codes
         if (statusCode === 404) {
           throw new NotFoundException(`forms not found`);
         } else if (statusCode === 401 || statusCode === 403) {
-          throw new UnauthorizedException('Authentication failed or insufficient permissions');
+          throw new UnauthorizedException(
+            'Authentication failed or insufficient permissions',
+          );
         } else {
           // Handle other status codes with original error message
-          const errorMessage = error.response.data?.error || 
-                             error.response.data?.message || 
-                             'An error occurred with the transaction service';
+          const errorMessage =
+            error.response.data?.error ||
+            error.response.data?.message ||
+            'An error occurred with the transaction service';
           throw new HttpException(errorMessage, statusCode);
         }
       } else if (error.request) {
@@ -148,32 +159,40 @@ export class ZipformsService {
       if (error.response) {
         // Extract status code from the 3rd party API response
         const statusCode = error.response.status;
-        
+
         // Handle specific status codes
         if (statusCode === 404) {
-          throw new NotFoundException(`Transaction with ID ${transactionId} not found`);
+          throw new NotFoundException(
+            `Transaction with ID ${transactionId} not found`,
+          );
         } else if (statusCode === 401 || statusCode === 403) {
-          throw new UnauthorizedException('Authentication failed or insufficient permissions');
+          throw new UnauthorizedException(
+            'Authentication failed or insufficient permissions',
+          );
         } else {
           // Handle other status codes with original error message
-          const errorMessage = error.response.data?.error || 
-                             error.response.data?.message || 
-                             'An error occurred with the transaction service';
+          const errorMessage =
+            error.response.data?.error ||
+            error.response.data?.message ||
+            'An error occurred with the transaction service';
           throw new HttpException(errorMessage, statusCode);
         }
       } else if (error.request) {
         // The request was made but no response was received (e.g., network error)
-        throw new ServiceUnavailableException('Transaction service unavailable');
+        throw new ServiceUnavailableException(
+          'Transaction service unavailable',
+        );
       } else {
         // Something else happened while setting up the request
-        throw new InternalServerErrorException('Error setting up transaction request');
+        throw new InternalServerErrorException(
+          'Error setting up transaction request',
+        );
       }
     }
   }
   async viewAllTransactions(
     contextId: string,
     sharedKey: string,
-   
   ): Promise<any> {
     const headers = {
       'Content-Type': 'application/json',
@@ -197,29 +216,36 @@ export class ZipformsService {
       if (error.response) {
         // Extract status code from the 3rd party API response
         const statusCode = error.response.status;
-        
+
         // Handle specific status codes
         if (statusCode === 404) {
           throw new NotFoundException(`Failed to fetch Transactions`);
         } else if (statusCode === 401 || statusCode === 403) {
-          throw new UnauthorizedException('Authentication failed or insufficient permissions');
+          throw new UnauthorizedException(
+            'Authentication failed or insufficient permissions',
+          );
         } else {
           // Handle other status codes with original error message
-          const errorMessage = error.response.data?.error || 
-                             error.response.data?.message || 
-                             'An error occurred with the transaction service';
+          const errorMessage =
+            error.response.data?.error ||
+            error.response.data?.message ||
+            'An error occurred with the transaction service';
           throw new HttpException(errorMessage, statusCode);
         }
       } else if (error.request) {
         // The request was made but no response was received (e.g., network error)
-        throw new ServiceUnavailableException('Transaction service unavailable');
+        throw new ServiceUnavailableException(
+          'Transaction service unavailable',
+        );
       } else {
         // Something else happened while setting up the request
-        throw new InternalServerErrorException('Error setting up transaction request');
+        throw new InternalServerErrorException(
+          'Error setting up transaction request',
+        );
       }
     }
   }
-  
+
   async viewTransactionData(
     contextId: string,
     sharedKey: string,
@@ -248,29 +274,37 @@ export class ZipformsService {
       if (error.response) {
         // Extract status code from the 3rd party API response
         const statusCode = error.response.status;
-        
+
         // Handle specific status codes
         if (statusCode === 404) {
-          throw new NotFoundException(`Transaction with ID ${transactionId} not found`);
+          throw new NotFoundException(
+            `Transaction with ID ${transactionId} not found`,
+          );
         } else if (statusCode === 401 || statusCode === 403) {
-          throw new UnauthorizedException('Authentication failed or insufficient permissions');
+          throw new UnauthorizedException(
+            'Authentication failed or insufficient permissions',
+          );
         } else {
           // Handle other status codes with original error message
-          const errorMessage = error.response.data?.error || 
-                             error.response.data?.message || 
-                             'An error occurred with the transaction service';
+          const errorMessage =
+            error.response.data?.error ||
+            error.response.data?.message ||
+            'An error occurred with the transaction service';
           throw new HttpException(errorMessage, statusCode);
         }
       } else if (error.request) {
         // The request was made but no response was received (e.g., network error)
-        throw new ServiceUnavailableException('Transaction service unavailable');
+        throw new ServiceUnavailableException(
+          'Transaction service unavailable',
+        );
       } else {
         // Something else happened while setting up the request
-        throw new InternalServerErrorException('Error setting up transaction request');
+        throw new InternalServerErrorException(
+          'Error setting up transaction request',
+        );
       }
     }
-    }
-  
+  }
 
   async addTransactionForm(
     contextId: string,
@@ -300,25 +334,34 @@ export class ZipformsService {
       if (error.response) {
         // Extract status code from the 3rd party API response
         const statusCode = error.response.status;
-        
+
         // Handle specific status codes
         if (statusCode === 404) {
-          throw new NotFoundException(`Transaction with ID ${transactionId} not found`);
+          throw new NotFoundException(
+            `Transaction with ID ${transactionId} not found`,
+          );
         } else if (statusCode === 401 || statusCode === 403) {
-          throw new UnauthorizedException('Authentication failed or insufficient permissions');
+          throw new UnauthorizedException(
+            'Authentication failed or insufficient permissions',
+          );
         } else {
           // Handle other status codes with original error message
-          const errorMessage = error.response.data?.error || 
-                             error.response.data?.message || 
-                             'An error occurred with the transaction service';
+          const errorMessage =
+            error.response.data?.error ||
+            error.response.data?.message ||
+            'An error occurred with the transaction service';
           throw new HttpException(errorMessage, statusCode);
         }
       } else if (error.request) {
         // The request was made but no response was received (e.g., network error)
-        throw new ServiceUnavailableException('Transaction service unavailable');
+        throw new ServiceUnavailableException(
+          'Transaction service unavailable',
+        );
       } else {
         // Something else happened while setting up the request
-        throw new InternalServerErrorException('Error setting up transaction request');
+        throw new InternalServerErrorException(
+          'Error setting up transaction request',
+        );
       }
     }
   }

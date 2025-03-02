@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { EmailService } from 'src/services/email/email.service';
 import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
 import { configs } from 'src/configs';
 
 import {
@@ -26,6 +27,7 @@ export default class NotificationService {
     private readonly userModel: Model<User>,
     @InjectModel(Agent.name)
     private readonly agentModel: Model<User>,
+    private readonly configService: ConfigService,
   ) {}
 
   private readonly oneSignalApiKey = configs.oneSignal_api_key;
@@ -43,7 +45,7 @@ export default class NotificationService {
         payload,
         {
           headers: {
-            Authorization: `Basic ${this.oneSignalApiKey}`,
+            Authorization: `Basic ${this.configService.get<string>('ONESIGNAL_API_KEY')}`,
             'Content-Type': 'application/json',
           },
         },
@@ -97,11 +99,32 @@ export default class NotificationService {
     message: string,
     targetUserIds: string[],
   ): Promise<void> {
+
+
+
+    if (!Array.isArray(targetUserIds) || targetUserIds.length === 0) {
+      throw new Error('Target user IDs must be a non-empty array');
+    }
+  
+    // Clean and validate user IDs
+    const validUserIds = targetUserIds
+      .map(id => String(id).trim()) // Convert to strings and trim whitespace
+      .filter(id => id.length > 0); // Remove empty strings
+  
+    if (validUserIds.length === 0) {
+      throw new Error('No valid user IDs provided');
+    }
     const notificationPayload = {
       app_id: this.oneSignalAppId,
-      include_external_user_ids: targetUserIds,
+      include_external_user_ids: validUserIds,
       contents: { en: message },
     };
+
+
+    const appKey = this.configService.get<string>('ONESIGNAL_API_KEY');
+    console.log('User IDs being sent:', validUserIds);
+
+
 
     try {
       const response = await axios.post(
@@ -109,7 +132,7 @@ export default class NotificationService {
         notificationPayload,
         {
           headers: {
-            Authorization: `Basic ${this.oneSignalApiKey}`,
+            Authorization: `Basic ${appKey}`,
             'Content-Type': 'application/json',
           },
         },
@@ -127,12 +150,23 @@ export default class NotificationService {
     user: string;
     userType?: NotificationUserType;
   }): Promise<Notification> {
-    const payload: any = { ...data, user: new Types.ObjectId(data.user) };
-
+    if (!data.user || !Types.ObjectId.isValid(data.user)) {
+      throw new Error('Invalid user ID');
+    }
+  
+    const payload = { 
+      ...data, 
+      user: new Types.ObjectId(data.user) 
+    };
+  
     const saved = await this.notificationModel.create(payload);
     const notification = await saved.save();
-    await this.sendPushNotification(data.body, [notification.user.id]);
+    
+    // Ensure user ID is converted to string
+    await this.sendPushNotification(data.body, [saved.user.toString()]);
+
     return notification;
+
   }
 
   async createMultipleNotifications(data: {
@@ -160,39 +194,6 @@ export default class NotificationService {
   //     email,
   //     subject: 'Welcome to Pharmaserv',
   //     template: EMAIL_TEMPLATES.NEW_MANAGER_EMAIL,
-  //     body: body,
-  //   });
-
-  //   return result;
-  // }
-
-  // async sendNewMedRepEmail({ email, body }) {
-  //   const result = await this.emailService.sendEmail({
-  //     email,
-  //     subject: 'Welcome to Pharmaserv',
-  //     template: EMAIL_TEMPLATES.NEW_MEDREP_EMAIL,
-  //     body: body,
-  //   });
-
-  //   return result;
-  // }
-
-  // async sendForgotPasswordEmail({ email, body }) {
-  //   const result = await this.emailService.sendEmail({
-  //     email,
-  //     subject: 'Email verification',
-  //     template: EMAIL_TEMPLATES.FORGOT_PASSWORD,
-  //     body: body,
-  //   });
-
-  //   return result;
-  // }
-
-  // async passwordResetEmail({ email, body }) {
-  //   const result = await this.emailService.sendEmail({
-  //     email,
-  //     subject: 'Password update successful',
-  //     template: EMAIL_TEMPLATES.PASSWORD_UPDATE,
   //     body: body,
   //   });
 

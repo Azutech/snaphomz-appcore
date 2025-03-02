@@ -1,5 +1,8 @@
-export const accountVerificationAgent = (verification_code: string, link : string): string => {
-    return `
+export const accountVerificationAgent = (
+  verification_code: string,
+  link: string,
+): string => {
+  return `
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -156,5 +159,4 @@ export const accountVerificationAgent = (verification_code: string, link : strin
     </body>
     </html>
       `;
-  };
-  
+};

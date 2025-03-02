@@ -14,6 +14,8 @@ import { SaveUserDocumentsDto } from './dto/saveDocuments.dto';
 import { UserDocument } from './schema/user_documents';
 import { PaginationDto } from 'src/constants/pagination.dto';
 import { PropertyPreferenceDto } from './dto/propertyPreference.dto';
+import NotificationService from '../notification/notitifcation.service';
+import { NotificationUserType } from '../notification/schema/notification.schema';
 
 @Injectable()
 export class UsersService {
@@ -22,6 +24,7 @@ export class UsersService {
     @InjectModel(UserDocument.name)
     private readonly userDocumentModel: Model<UserDocument>,
     private readonly emailService: EmailService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async onBoardNewuser(userId: string, userDto: CreateUserDto) {
@@ -38,6 +41,13 @@ export class UsersService {
 
     const user = await this.userModel.findByIdAndUpdate(userId, payload, {
       new: true,
+    });
+
+    await this.notificationService.createNotification({
+      title: `New User Onboarded:  Welcome`,
+      body: `Welcome to Snaphomz ${user.fullname}, We will make your real estate dreams come through`,
+      user: user._id.toString(),
+      userType: NotificationUserType.user,
     });
 
     const token = createUserJwtToken({

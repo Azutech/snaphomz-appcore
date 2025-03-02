@@ -1,4 +1,7 @@
-export const accountVerification = (verification_code: string, link : string): string => {
+export const accountVerification = (
+  verification_code: string,
+  link: string,
+): string => {
   return `
   <!DOCTYPE html>
   <html lang="en">
