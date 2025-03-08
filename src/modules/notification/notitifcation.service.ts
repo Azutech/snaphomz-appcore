@@ -99,18 +99,15 @@ export default class NotificationService {
     message: string,
     targetUserIds: string[],
   ): Promise<void> {
-
-
-
     if (!Array.isArray(targetUserIds) || targetUserIds.length === 0) {
       throw new Error('Target user IDs must be a non-empty array');
     }
-  
+
     // Clean and validate user IDs
     const validUserIds = targetUserIds
-      .map(id => String(id).trim()) // Convert to strings and trim whitespace
-      .filter(id => id.length > 0); // Remove empty strings
-  
+      .map((id) => String(id).trim()) // Convert to strings and trim whitespace
+      .filter((id) => id.length > 0); // Remove empty strings
+
     if (validUserIds.length === 0) {
       throw new Error('No valid user IDs provided');
     }
@@ -120,11 +117,8 @@ export default class NotificationService {
       contents: { en: message },
     };
 
-
     const appKey = this.configService.get<string>('ONESIGNAL_API_KEY');
     console.log('User IDs being sent:', validUserIds);
-
-
 
     try {
       const response = await axios.post(
@@ -153,20 +147,19 @@ export default class NotificationService {
     if (!data.user || !Types.ObjectId.isValid(data.user)) {
       throw new Error('Invalid user ID');
     }
-  
-    const payload = { 
-      ...data, 
-      user: new Types.ObjectId(data.user) 
+
+    const payload = {
+      ...data,
+      user: new Types.ObjectId(data.user),
     };
-  
+
     const saved = await this.notificationModel.create(payload);
     const notification = await saved.save();
-    
+
     // Ensure user ID is converted to string
     await this.sendPushNotification(data.body, [saved.user.toString()]);
 
     return notification;
-
   }
 
   async createMultipleNotifications(data: {

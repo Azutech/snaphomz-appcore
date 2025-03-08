@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { DuplicateException } from 'src/custom_errors';
@@ -10,6 +14,8 @@ import * as crypto from 'crypto';
 import { PaginationDto } from '../../constants/pagination.dto';
 
 import { Property } from '../property/schema/property.schema';
+import { NotificationUserType } from '../notification/schema/notification.schema';
+import NotificationService from '../notification/notitifcation.service';
 
 @Injectable()
 export class AgentsService {
@@ -17,6 +23,7 @@ export class AgentsService {
     @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
     @InjectModel(Property.name) private readonly propertyModel: Model<Property>,
     private readonly emailService: EmailService,
+    private readonly notificationService: NotificationService,
   ) {}
 
   async onboardAgent(agentId: string, agentDto: OnboardAgentDto) {
@@ -41,6 +48,13 @@ export class AgentsService {
 
     const agent = await this.agentModel.findByIdAndUpdate(agentId, payload, {
       new: true,
+    });
+
+    await this.notificationService.createNotification({
+      title: `New User Onboarded:  Welcome`,
+      body: `Welcome to Snaphomz ${agent.fullname}, We will make your real estate dreams come through`,
+      user: agent._id.toString(),
+      userType: NotificationUserType.agent,
     });
 
     const token = createAgentJwtToken({
@@ -89,6 +103,7 @@ export class AgentsService {
 
     const skip = (page - 1) * limit;
     let searchQuery;
+
     if (search) {
       searchQuery = {
         $or: [

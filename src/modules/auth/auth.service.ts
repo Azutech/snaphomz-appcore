@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -289,7 +290,7 @@ export class AuthService {
       return {
         to: emailDto.email,
         from: 'contact@ocreal.online',
-        subject: 'Welcome to OCReal',
+        subject: 'Confirm Verification Code',
         html: accountVerification(token, link),
       };
     }
@@ -577,27 +578,41 @@ export class AuthService {
   }
 
   async sendAgentVerificationEmail(emailDto: { email: string }): Promise<any> {
-    const agentExistis = await this.agentModel.findOne({
-      email: emailDto.email,
-    });
-    if (agentExistis)
-      throw new DuplicateException('An account with this email already exists');
-    const token = await this._generateAgentEmailToken();
-    await this.agentModel.create({
-      email: emailDto.email,
-      verification_code: token,
-      token_expiry_time: moment().add(10, 'minutes').toDate(),
-    });
-    function emailDispatcherPayload(): MailDispatcherDto {
-      return {
-        to: agentExistis.email,
-        from: 'contact@ocreal.online',
-        subject: 'Welcome to OCReal',
-        html: resendVerification(token),
-      };
+    try {
+      const agentExistis = await this.agentModel.findOne({
+        email: emailDto.email,
+      });
+      if (agentExistis)
+        throw new DuplicateException(
+          'An account with this email already exists',
+        );
+      const token = await this._generateAgentEmailToken();
+      const agent = new this.agentModel({
+        email: emailDto.email,
+        verification_code: token,
+        token_expiry_time: moment().add(10, 'minutes').toDate(),
+      });
+
+      const url = `${this.configService.get<string>('BASE_URL')}`;
+
+      const link = `${url}/auth/user/verify/code`;
+
+      console.log(link);
+      function emailDispatcherPayload(): MailDispatcherDto {
+        return {
+          to: agent.email,
+          from: 'contact@ocreal.online',
+          subject: 'Confirm Verification Code',
+          html: accountVerificationAgent(token, link),
+        };
+      }
+      await this.emailService.emailDispatcher(emailDispatcherPayload());
+
+      console.log(token);
+      return { token };
+    } catch (err) {
+      throw new InternalServerErrorException('Server Error');
     }
-    await this.emailService.emailDispatcher(emailDispatcherPayload());
-    return { token };
   }
 
   async resendUserVerificationEmail({ email }): Promise<any> {

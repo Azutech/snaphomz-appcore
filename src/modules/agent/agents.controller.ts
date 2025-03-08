@@ -60,7 +60,7 @@ export class AgentsController {
   @Get('/search')
   async searchForAgents(
     @Res() res: Response,
-    @Req() req: Request,
+    @Req() req: any,
     @Query() paginationDto: PaginationDto,
   ) {
     const data = await this.agentsService.searchForAgents(paginationDto);
