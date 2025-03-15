@@ -8,6 +8,7 @@ import {
   HttpStatus,
   Query,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { ZipformsService } from './zipforms.service';
 import { FormAuthDto } from './dto/form.dto';
@@ -112,6 +113,54 @@ export class ZipformsController {
     }
 
     const result = await this.zipformsService.viewTransactionData(
+      contextId,
+      sharedKey,
+      transactionId,
+    );
+
+    return {
+      status: 'success',
+      data: result,
+    };
+  }
+  @Get('viewTransaction')
+  async viewTransaction(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Query('transactionId') transactionId: string,
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const result = await this.zipformsService.viewTransaction(
+      contextId,
+      sharedKey,
+      transactionId,
+    );
+
+    return {
+      status: 'success',
+      data: result,
+    };
+  }
+  @Delete('deleteTransaction')
+  async deleteTransaction(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Query('transactionId') transactionId: string,
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const result = await this.zipformsService.deleteTransaction(
       contextId,
       sharedKey,
       transactionId,
