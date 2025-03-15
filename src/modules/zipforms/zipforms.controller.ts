@@ -99,9 +99,30 @@ export class ZipformsController {
       data: result,
     };
   }
+  @Get('documentsOfTransaction')
+  async documentsOfTransaction(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Query('transactionId') transactionId: string,
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
 
+    const result = await this.zipformsService.documentsOfTransaction(
+      contextId,
+      sharedKey,
+      transactionId,
+    );
 
-  
+    return {
+      status: 'success',
+      data: result,
+    };
+  }
 
   @Get('viewTransactionData')
   async viewTransactionData(
@@ -151,32 +172,7 @@ export class ZipformsController {
       data: result,
     };
   }
-  @Get('viewformTransactionData')
-  async viewformTransactionData(
-    @Headers('X-Auth-ContextId') contextId: string,
-    @Headers('X-Auth-SharedKey') sharedKey: string,
-    @Query('transactionId') transactionId: string,
-    @Query('formId') formId: string,
-  ) {
-    if (!contextId || !sharedKey) {
-      throw new HttpException(
-        'Missing required authentication headers',
-        HttpStatus.UNAUTHORIZED,
-      );
-    }
 
-    const result = await this.zipformsService.viewformTransactionData(
-      contextId,
-      sharedKey,
-      transactionId,
-      formId,
-    );
-
-    return {
-      status: 'success',
-      data: result,
-    };
-  }
   @Delete('deleteTransaction')
   @HttpCode(HttpStatus.NO_CONTENT) // This sets the response status code to 204
   async deleteTransaction(
@@ -197,10 +193,32 @@ export class ZipformsController {
       transactionId,
     );
 
-    return {
-      status: 'success',
-      data: result,
-    };
+    return;
+  }
+
+  @Delete('deleteDocuments')
+  @HttpCode(HttpStatus.NO_CONTENT) // This sets the response status code to 204
+  async deleteDocuments(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Query('transactionId') transactionId: string,
+    @Query('id') id: string,
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const result = await this.zipformsService.deleteDocuments(
+      contextId,
+      sharedKey,
+      transactionId,
+      id,
+    );
+
+    return;
   }
 
   @Get('viewAllTransactions')
@@ -219,6 +237,7 @@ export class ZipformsController {
 
     return;
   }
+
   @Post('endSession')
   @HttpCode(HttpStatus.NO_CONTENT) // This sets the response status code to 204
   async endSession(
