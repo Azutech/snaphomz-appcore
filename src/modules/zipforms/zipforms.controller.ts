@@ -7,7 +7,6 @@ import {
   HttpException,
   HttpStatus,
   Query,
-  UseGuards,
   Delete,
   HttpCode,
 } from '@nestjs/common';
