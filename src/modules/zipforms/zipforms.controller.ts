@@ -147,6 +147,32 @@ export class ZipformsController {
       data: result,
     };
   }
+  @Get('viewformTransactionData')
+  async viewformTransactionData(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Query('transactionId') transactionId: string,
+    @Query('formId') formId: string,
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const result = await this.zipformsService.viewformTransactionData(
+      contextId,
+      sharedKey,
+      transactionId,
+      formId
+    );
+
+    return {
+      status: 'success',
+      data: result,
+    };
+  }
   @Delete('deleteTransaction')
   async deleteTransaction(
     @Headers('X-Auth-ContextId') contextId: string,
