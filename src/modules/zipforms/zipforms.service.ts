@@ -500,7 +500,7 @@ export class ZipformsService {
       const url = this.configService.get<string>('ZIPFORM_URL');
 
       const zipFormsUrl = `${url}/transactions/${transactionId}/dnum/${formId}`; // Replace with the correct endpoint
-   
+
       const response = await firstValueFrom(
         this.httpService.get(zipFormsUrl, {
           headers,
@@ -508,7 +508,6 @@ export class ZipformsService {
       );
 
       console.log(response.data);
-
 
       return response.data; // Return the transaction data
     } catch (error) {
@@ -548,6 +547,61 @@ export class ZipformsService {
     }
   }
 
+  async endSession(contextId: string, sharedKey: string): Promise<any> {
+    const headers = {
+      Accept: 'application/json',
+      'X-Auth-ContextId': contextId, // Custom header for the context ID
+      'X-Auth-SharedKey': sharedKey, // Custom header for the shared key
+    };
+
+    try {
+      const url = this.configService.get<string>('ZIPFORM_URL');
+      const endSessionUrl = `${url}/auth/end-session`;
+
+      // POST request with empty body since the API doesn't expect any data
+      const response = await firstValueFrom(
+        this.httpService.post(
+          endSessionUrl,
+          {},
+          {
+            headers,
+          },
+        ),
+      );
+
+      return response; // This will likely be empty based on "no content" response
+    } catch (error) {
+      // Handle errors appropriately
+      if (error.response) {
+        // Extract status code from the 3rd party API response
+        const statusCode = error.response.status;
+
+        // Handle specific status codes
+        if (statusCode === 404) {
+          throw new NotFoundException('Session not found');
+        } else if (statusCode === 401 || statusCode === 403) {
+          throw new UnauthorizedException(
+            'Authentication failed or insufficient permissions',
+          );
+        } else {
+          // Handle other status codes with original error message
+          const errorMessage =
+            error.response.data?.error ||
+            error.response.data?.message ||
+            'An error occurred with the session service';
+          throw new HttpException(errorMessage, statusCode);
+        }
+      } else if (error.request) {
+        // The request was made but no response was received (e.g., network error)
+        throw new ServiceUnavailableException('Session service unavailable');
+      } else {
+        // Something else happened while setting up the request
+        throw new InternalServerErrorException(
+          'Error setting up session request',
+        );
+      }
+    }
+  }
   async addTransactionForm(
     contextId: string,
     sharedKey: string,

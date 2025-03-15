@@ -9,6 +9,7 @@ import {
   Query,
   UseGuards,
   Delete,
+  HttpCode,
 } from '@nestjs/common';
 import { ZipformsService } from './zipforms.service';
 import { FormAuthDto } from './dto/form.dto';
@@ -165,7 +166,7 @@ export class ZipformsController {
       contextId,
       sharedKey,
       transactionId,
-      formId
+      formId,
     );
 
     return {
@@ -174,6 +175,7 @@ export class ZipformsController {
     };
   }
   @Delete('deleteTransaction')
+  @HttpCode(HttpStatus.NO_CONTENT) // This sets the response status code to 204
   async deleteTransaction(
     @Headers('X-Auth-ContextId') contextId: string,
     @Headers('X-Auth-SharedKey') sharedKey: string,
@@ -210,15 +212,27 @@ export class ZipformsController {
       );
     }
 
-    const result = await this.zipformsService.viewAllTransactions(
-      contextId,
-      sharedKey,
-    );
+    await this.zipformsService.viewAllTransactions(contextId, sharedKey);
 
-    return {
-      status: 'success',
-      data: result,
-    };
+    return;
+  }
+  @Post('endSession')
+  @HttpCode(HttpStatus.NO_CONTENT) // This sets the response status code to 204
+  async endSession(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    await this.zipformsService.endSession(contextId, sharedKey);
+
+    // No need to return anything for a 204 response
+    return;
   }
 
   @Post('addFormToTransaction')
