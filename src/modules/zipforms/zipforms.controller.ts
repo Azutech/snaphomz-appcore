@@ -7,6 +7,7 @@ import {
   HttpException,
   HttpStatus,
   Query,
+
   Delete,
   HttpCode,
 } from '@nestjs/common';
@@ -171,6 +172,34 @@ export class ZipformsController {
       data: result,
     };
   }
+  @Get('viewDocuments')
+  async viewDocuments(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Query('transactionId') transactionId: string,
+    @Query('id') id: string,
+    
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const result = await this.zipformsService.viewDocuments(
+      contextId,
+      sharedKey,
+      transactionId,
+      id,
+  
+    );
+
+    return {
+      status: 'success',
+      data: result,
+    };
+  }
 
   @Delete('deleteTransaction')
   @HttpCode(HttpStatus.NO_CONTENT) // This sets the response status code to 204
@@ -232,9 +261,12 @@ export class ZipformsController {
       );
     }
 
-    await this.zipformsService.viewAllTransactions(contextId, sharedKey);
+   const result = await this.zipformsService.viewAllTransactions(contextId, sharedKey);
 
-    return;
+    return {
+      status: 'success',
+      data: result,
+    };
   }
 
   @Post('endSession')
