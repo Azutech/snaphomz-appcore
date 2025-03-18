@@ -53,6 +53,32 @@ export class ZipformsController {
       data: result,
     };
   }
+  @Post('createWebhook')
+  async createWebhook(
+    @Headers('X-Auth-ContextId') contextId: string,
+    @Headers('X-Auth-SharedKey') sharedKey: string,
+    @Body() payload: any,
+    @Query('scopeId') scopeId: any,
+  ) {
+    if (!contextId || !sharedKey) {
+      throw new HttpException(
+        'Missing required authentication headers',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
+    const result = await this.zipformsService.createWebhook(
+      contextId,
+      sharedKey,
+      payload,
+      scopeId
+    );
+
+    return {
+      status: 'success',
+      data: result,
+    };
+  }
   @Get('viewagentForm')
   async viewagentForm(
     @Headers('X-Auth-ContextId') contextId: string,

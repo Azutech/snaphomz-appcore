@@ -80,7 +80,103 @@ export class ZipformsService {
       );
     }
   }
+  // async createWebhook(
+  //   contextId: string,
+  //   sharedKey: string,
+  //   payload: any,
+  //   scopeId: any,
+  // ): Promise<any> {
+  //   const headers = {
+  //     'Content-Type': 'application/json',
+  //     'X-Auth-ContextId': contextId, // Custom header for the context ID
+  //     'X-Auth-SharedKey': sharedKey, // Custom header for the shared key
+  //   };
 
+  //   try {
+  //     // const sharedKey = this.configService.get<string>('ZIPFORM_SHARED_KEY');
+  //     const url = this.configService.get<string>('ZIPFORM_URL');
+  //     const transactionUrl = `${url}/api/hook${scopeId}`;
+
+  //     const response = await firstValueFrom(
+  //       this.httpService.post(transactionUrl, payload, {
+  //         headers,
+  //       }),
+  //     );
+  //     return response.data; // Return the transaction data
+  //   } catch (error) {
+  //     // Handle errors appropriately
+  //     const errorMessage =
+  //       error.response?.data?.error || 'Failed to create webhook.';
+  //     throw new HttpException(
+  //       {
+  //         status: HttpStatus.BAD_REQUEST,
+  //         error: errorMessage,
+  //       },
+  //       HttpStatus.BAD_REQUEST,
+  //     );
+  //   }
+  // }
+
+  async createWebhook(
+    contextId: string,
+    sharedKey: string,
+    payload: { eventId: number; url: string },
+    scopeId: string,
+  ): Promise<any> {
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Auth-SharedKey': sharedKey,
+      // Add session key if required (check documentation)
+      'Session-Key': '' // Add session key retrieval logic if needed
+    };
+  
+    const url = this.configService.get<string>('ZIPFORM_URL');
+    // 1. Fix URL construction
+    const transactionUrl = `${url}/hook/${scopeId}`; // Added slash before scopeId
+
+    try {
+      
+      // 2. Add payload validation
+      if (!payload.url || !payload.eventId) {
+        throw new HttpException('Missing required fields in payload', HttpStatus.BAD_REQUEST);
+      }
+  
+      // 3. Add HTTPS validation for callback URL
+      if (!payload.url.startsWith('https://')) {
+        throw new HttpException('Callback URL must use HTTPS', HttpStatus.BAD_REQUEST);
+      }
+  
+      const response = await firstValueFrom(
+        this.httpService.post(transactionUrl, payload, { headers }),
+      );
+  
+      // 4. Add proper typing for response
+      return {
+        id: response.data.value?.id,
+        url: response.data.value?.url,
+        status: response.data.value?.paused ? 'paused' : 'active'
+      };
+      
+    } catch (error) {
+      // 5. Improved error logging
+      console.error('Webhook creation failed:', {
+        url: transactionUrl,
+        error: error.response?.data,
+        status: error.response?.status
+      });
+  
+      // 6. Better error propagation
+      const errorMessage = error.response?.data?.message || 'Webhook registration failed';
+      throw new HttpException(
+        {
+          status: HttpStatus.BAD_REQUEST,
+          error: errorMessage,
+          details: error.response?.data?.errors
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+  }
   async viewAgentLibraryForm(
     contextId: string,
     sharedKey: string,
