@@ -266,7 +266,7 @@ export default class NotificationService {
       isRead: notification.read,
       title: notification.title,
       body: notification.body,
-      userType: notification.userType,
+      userType: notification.body,
     };
   }
 

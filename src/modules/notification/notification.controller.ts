@@ -93,6 +93,7 @@ export class NotificationController {
   //   });
   // }
 
+  @UseGuards(JwtAuthGuard)
   @Put('read/one/:id')
   async markOneAsRead(@Req() req: Request, @Res() res: Response) {
     const result = await this.notificationService.markOneAsRead(req.params.id);

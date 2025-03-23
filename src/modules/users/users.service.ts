@@ -78,12 +78,28 @@ export class UsersService {
         user: user._id,
       };
     });
+    
     const documents = await this.userDocumentModel.insertMany(docs);
-    return documents;
+    
+    // Get document names for the notification
+    const documentNames = documents.map(doc => doc.name);
+    
+    await this.notificationService.createNotification({
+      title: `User Document saved`,
+      body: `${user.fullname}, added new documents ${documentNames.join(', ')}`,
+      user: user._id.toString(),
+      userType: NotificationUserType.user,
+    });
+    
+    // Return only name and thumbnail fields from the documents
+    return documents.map(doc => ({
+      name: doc.name,
+      thumbNail: doc.thumbNail
+    }));
   }
 
   async savedUserPropertyPreference(user: User, dto: PropertyPreferenceDto) {
-    return await this.userModel.findByIdAndUpdate(
+    const property =  await this.userModel.findByIdAndUpdate(
       user.id,
       {
         propertyPreference: dto,
@@ -92,10 +108,19 @@ export class UsersService {
         new: true,
       },
     );
+
+    await this.notificationService.createNotification({
+      title: `User Document saved`,
+      body: `${user.fullname}, saved property preference ${property.propertyPreference.propertyType}`,
+      user: user._id.toString(),
+      userType: NotificationUserType.user,
+    });
+
+    return property
   }
 
   async completeUserPropertyPreference(user: User, dto: PropertyPreferenceDto) {
-    return await this.userModel.findByIdAndUpdate(
+   const onboardedUser = await this.userModel.findByIdAndUpdate(
       user.id,
       {
         propertyPreference: { ...dto, onboardingCompleted: true },
@@ -104,6 +129,15 @@ export class UsersService {
         new: true,
       },
     );
+
+    await this.notificationService.createNotification({
+      title: `User Document saved`,
+      body: `${user.fullname} successfully completed onboarding`,
+      user: user._id.toString(),
+      userType: NotificationUserType.user,
+    });
+
+    return onboardedUser
   }
 
   async deleteUserDocuments(user: User, id: string) {
