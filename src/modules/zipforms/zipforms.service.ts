@@ -127,51 +127,56 @@ export class ZipformsService {
       'Content-Type': 'application/json',
       'X-Auth-SharedKey': sharedKey,
       // Add session key if required (check documentation)
-      'Session-Key': '' // Add session key retrieval logic if needed
+      'Session-Key': '', // Add session key retrieval logic if needed
     };
-  
+
     const url = this.configService.get<string>('ZIPFORM_URL');
     // 1. Fix URL construction
     const transactionUrl = `${url}/hook/${scopeId}`; // Added slash before scopeId
 
     try {
-      
       // 2. Add payload validation
       if (!payload.url || !payload.eventId) {
-        throw new HttpException('Missing required fields in payload', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Missing required fields in payload',
+          HttpStatus.BAD_REQUEST,
+        );
       }
-  
+
       // 3. Add HTTPS validation for callback URL
       if (!payload.url.startsWith('https://')) {
-        throw new HttpException('Callback URL must use HTTPS', HttpStatus.BAD_REQUEST);
+        throw new HttpException(
+          'Callback URL must use HTTPS',
+          HttpStatus.BAD_REQUEST,
+        );
       }
-  
+
       const response = await firstValueFrom(
         this.httpService.post(transactionUrl, payload, { headers }),
       );
-  
+
       // 4. Add proper typing for response
       return {
         id: response.data.value?.id,
         url: response.data.value?.url,
-        status: response.data.value?.paused ? 'paused' : 'active'
+        status: response.data.value?.paused ? 'paused' : 'active',
       };
-      
     } catch (error) {
       // 5. Improved error logging
       console.error('Webhook creation failed:', {
         url: transactionUrl,
         error: error.response?.data,
-        status: error.response?.status
+        status: error.response?.status,
       });
-  
+
       // 6. Better error propagation
-      const errorMessage = error.response?.data?.message || 'Webhook registration failed';
+      const errorMessage =
+        error.response?.data?.message || 'Webhook registration failed';
       throw new HttpException(
         {
           status: HttpStatus.BAD_REQUEST,
           error: errorMessage,
-          details: error.response?.data?.errors
+          details: error.response?.data?.errors,
         },
         HttpStatus.BAD_REQUEST,
       );
@@ -656,7 +661,7 @@ export class ZipformsService {
       const url = this.configService.get<string>('ZIPFORM_URL');
 
       const zipFormsUrl = `${url}/transactions/${transactionId}/documents/${id}/meta`; // Replace with the correct endpoint
-     
+
       const response = await firstValueFrom(
         this.httpService.get(zipFormsUrl, {
           headers,

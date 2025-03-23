@@ -7,7 +7,6 @@ import {
   HttpException,
   HttpStatus,
   Query,
-
   Delete,
   HttpCode,
 } from '@nestjs/common';
@@ -71,7 +70,7 @@ export class ZipformsController {
       contextId,
       sharedKey,
       payload,
-      scopeId
+      scopeId,
     );
 
     return {
@@ -204,7 +203,6 @@ export class ZipformsController {
     @Headers('X-Auth-SharedKey') sharedKey: string,
     @Query('transactionId') transactionId: string,
     @Query('id') id: string,
-    
   ) {
     if (!contextId || !sharedKey) {
       throw new HttpException(
@@ -218,7 +216,6 @@ export class ZipformsController {
       sharedKey,
       transactionId,
       id,
-  
     );
 
     return {
@@ -287,7 +284,10 @@ export class ZipformsController {
       );
     }
 
-   const result = await this.zipformsService.viewAllTransactions(contextId, sharedKey);
+    const result = await this.zipformsService.viewAllTransactions(
+      contextId,
+      sharedKey,
+    );
 
     return {
       status: 'success',
