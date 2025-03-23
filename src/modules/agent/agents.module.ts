@@ -16,6 +16,7 @@ import {
   UserNotificationTokens,
   UserNotificationTokensSchema,
 } from '../notification/schema/userNotificationsTokens.schema';
+import { NotificationGateway } from '../notification/notification.gateway';
 
 @Module({
   imports: [
@@ -32,6 +33,6 @@ import {
     EmailModule,
   ],
   controllers: [AgentsController],
-  providers: [AgentsService, AgentOrSellerSocketAuthGuard, NotificationService],
+  providers: [AgentsService, AgentOrSellerSocketAuthGuard, NotificationService,   NotificationGateway],
 })
 export class AgentsModule {}

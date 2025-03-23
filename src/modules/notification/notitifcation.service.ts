@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { EmailService } from 'src/services/email/email.service';
@@ -14,6 +18,8 @@ import { PaginationDto } from 'src/constants/pagination.dto';
 import { User } from '../users/schema/user.schema';
 import { UserNotificationTokens } from './schema/userNotificationsTokens.schema';
 import { Agent } from '../agent/schema/agent.schema';
+import { NotificationGateway } from './notification.gateway';
+import { CreateMessageNotificationDto } from './dto/messagenotification.dto';
 
 @Injectable()
 export default class NotificationService {
@@ -28,6 +34,7 @@ export default class NotificationService {
     @InjectModel(Agent.name)
     private readonly agentModel: Model<User>,
     private readonly configService: ConfigService,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   private readonly oneSignalApiKey = configs.oneSignal_api_key;
@@ -138,28 +145,59 @@ export default class NotificationService {
     }
   }
 
-  async createNotification(data: {
-    title: string;
-    body: string;
-    user: string;
-    userType?: NotificationUserType;
-  }): Promise<Notification> {
-    if (!data.user || !Types.ObjectId.isValid(data.user)) {
-      throw new Error('Invalid user ID');
+  // async createNotification(data: {
+  //   title: string;
+  //   body: string;
+  //   user: string;
+  //   userType?: NotificationUserType;
+  // }): Promise<any> {
+  //   if (!data.user || !Types.ObjectId.isValid(data.user)) {
+  //     throw new Error('Invalid user ID');
+  //   }
+
+  //   const payload = {
+  //     ...data,
+  //     user: new Types.ObjectId(data.user),
+  //   };
+
+  //   const saved = await this.notificationModel.create(payload);
+  //   const notification = await saved.save();
+
+  //   // Ensure user ID is converted to string
+
+  //   await this.notificationGateway.sendRealTimeNotification(
+  //     data.user,
+  //     notification
+
+  //   );
+  // }
+
+  async createNotification(
+    createMessageNotificationDto: CreateMessageNotificationDto,
+  ): Promise<Notification> {
+    try {
+      const { user } = createMessageNotificationDto;
+
+      if (!user || !Types.ObjectId.isValid(user)) {
+        throw new Error('Invalid user ID');
+      }
+
+      const payload = {
+        ...createMessageNotificationDto,
+        user: new Types.ObjectId(createMessageNotificationDto.user),
+      };
+
+      const saved = await this.notificationModel.create(payload);
+
+      await this.notificationGateway.sendRealTimeNotification(
+    
+        createMessageNotificationDto,
+      );
+
+      return saved;
+    } catch (error) {
+      throw new InternalServerErrorException();
     }
-
-    const payload = {
-      ...data,
-      user: new Types.ObjectId(data.user),
-    };
-
-    const saved = await this.notificationModel.create(payload);
-    const notification = await saved.save();
-
-    // Ensure user ID is converted to string
-    await this.sendPushNotification(data.body, [saved.user.toString()]);
-
-    return notification;
   }
 
   async createMultipleNotifications(data: {
@@ -224,7 +262,12 @@ export default class NotificationService {
     if (!notification) {
       throw new NotFoundException('Notification not found.');
     }
-    return notification;
+    return {
+      isRead: notification.read,
+      title: notification.title,
+      body: notification.body,
+      userType: notification.userType,
+    };
   }
 
   async markAllAsRead(id: string) {

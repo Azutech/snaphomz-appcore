@@ -45,23 +45,23 @@ export class NotificationGateway
   @SubscribeMessage('sendNotification')
   async handleSendNotification(
     client: Socket,
-    payload: { userId: string; notification: CreateMessageNotificationDto },
+    payload: { notification: CreateMessageNotificationDto },
   ): Promise<void> {
-    const { userId, notification } = payload;
-    this.sendRealTimeNotification(userId, notification);
+    const { notification } = payload;
+    this.sendRealTimeNotification(notification);
   }
 
   // Send real-time notifications to connected users
   async sendRealTimeNotification(
-    userId: string,
+    // userId: string,
     message: CreateMessageNotificationDto,
   ) {
-    this.server.to(userId).emit('receiveNotification', {
+    this.server.emit('receiveNotification', {
       title: message.title,
       body: message.body,
       user: message.user,
       userType: message.userType,
-      read: message.read,
+    //   read: message.read,
     });
   }
 
@@ -85,7 +85,7 @@ export class NotificationGateway
             body: notification.body,
             user: notification.user,
             userType: notification.userType,
-            read: notification.read,
+            // read: notification.read,
           })),
         );
       }

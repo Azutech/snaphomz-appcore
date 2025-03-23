@@ -17,11 +17,12 @@ import { CreateUserNotificationTokenDto } from './dto/userNotficiationToken.dto'
 import { JwtAuthGuard } from 'src/guards/auth-jwt.guard';
 import { JwtAgentAuthGuard } from 'src/guards/agent.guard';
 
-@UseGuards(AgentOrSellerAuthGuard)
-@Controller('Notifications')
+// @UseGuards(AgentOrSellerAuthGuard)
+@Controller('notifications')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   async setOneSignalPlayerId(
     @Req() req: Request,
@@ -39,58 +40,58 @@ export class NotificationController {
     });
   }
 
-  @Post('set-player')
-  async setOneSignalPlayer(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Query() dto: OneSignalPlayerDto,
-  ) {
-    const result = await this.notificationService.setOneSignalExternalUserId(
-      dto.player_id,
-      req.user.id || req.agent.id,
-    );
-    this._sendResponse({
-      res,
-      data: { result },
-      message: 'Push notifications subscription completed.',
-    });
-  }
+  // @Post('set-player')
+  // async setOneSignalPlayer(
+  //   @Req() req: Request,
+  //   @Res() res: Response,
+  //   @Query() dto: OneSignalPlayerDto,
+  // ) {
+  //   const result = await this.notificationService.setOneSignalExternalUserId(
+  //     dto.player_id,
+  //     req.user.id || req.agent.id,
+  //   );
+  //   this._sendResponse({
+  //     res,
+  //     data: { result },
+  //     message: 'Push notifications subscription completed.',
+  //   });
+  // }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('save/user/notification-token')
-  async saveUserNotificationToken(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Query() dto: CreateUserNotificationTokenDto,
-  ) {
-    const result = await this.notificationService.saveUserNotificationToken(
-      dto.token,
-      req.user,
-    );
-    this._sendResponse({
-      res,
-      data: { result },
-      message: 'Push Notification Token Saved',
-    });
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Post('save/user/notification-token')
+  // async saveUserNotificationToken(
+  //   @Req() req: Request,
+  //   @Res() res: Response,
+  //   @Query() dto: CreateUserNotificationTokenDto,
+  // ) {
+  //   const result = await this.notificationService.saveUserNotificationToken(
+  //     dto.token,
+  //     req.user,
+  //   );
+  //   this._sendResponse({
+  //     res,
+  //     data: { result },
+  //     message: 'Push Notification Token Saved',
+  //   });
+  // }
 
-  @UseGuards(JwtAgentAuthGuard)
-  @Post('save/agent/notification-token')
-  async saveAgentNotificationToken(
-    @Req() req: Request,
-    @Res() res: Response,
-    @Query() dto: CreateUserNotificationTokenDto,
-  ) {
-    const result = await this.notificationService.saveAgentNotificationToken(
-      dto.token,
-      req.agent,
-    );
-    this._sendResponse({
-      res,
-      data: { result },
-      message: 'Push Notification Token Saved',
-    });
-  }
+  // @UseGuards(JwtAgentAuthGuard)
+  // @Post('save/agent/notification-token')
+  // async saveAgentNotificationToken(
+  //   @Req() req: Request,
+  //   @Res() res: Response,
+  //   @Query() dto: CreateUserNotificationTokenDto,
+  // ) {
+  //   const result = await this.notificationService.saveAgentNotificationToken(
+  //     dto.token,
+  //     req.agent,
+  //   );
+  //   this._sendResponse({
+  //     res,
+  //     data: { result },
+  //     message: 'Push Notification Token Saved',
+  //   });
+  // }
 
   @Put('read/one/:id')
   async markOneAsRead(@Req() req: Request, @Res() res: Response) {

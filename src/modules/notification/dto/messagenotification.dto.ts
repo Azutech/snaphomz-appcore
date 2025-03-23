@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateMessageNotificationDto {
   @IsNotEmpty()
@@ -17,7 +17,7 @@ export class CreateMessageNotificationDto {
   @IsString()
   userType: string;
 
-  @IsNotEmpty()
-  @IsString()
-  read: string;
+  // @IsNotEmpty()
+  // @IsBoolean()
+  // read: boolean;
 }

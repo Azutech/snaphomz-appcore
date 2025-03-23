@@ -18,6 +18,7 @@ import {
   UserNotificationTokens,
   UserNotificationTokensSchema,
 } from '../notification/schema/userNotificationsTokens.schema';
+import { NotificationGateway } from '../notification/notification.gateway';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import {
     UsersService,
     EmailService,
     NotificationService,
+    NotificationGateway,
     AgentOrSellerSocketAuthGuard,
   ],
 })

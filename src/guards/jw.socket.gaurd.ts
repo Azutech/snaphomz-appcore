@@ -26,13 +26,7 @@ export class AgentOrSellerSocketAuthGuard implements CanActivate {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
   ) {}
-  // canActivate(
-  //   context: ExecutionContext,
-  // ): boolean | Promise<boolean> | Observable<boolean> {
-  //   const request = context.switchToHttp().getRequest();
 
-  //   return this.validateRequest(request);
-  // }
 
   canActivate(
     context: ExecutionContext,

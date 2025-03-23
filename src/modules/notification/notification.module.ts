@@ -10,6 +10,7 @@ import {
   UserNotificationTokens,
   UserNotificationTokensSchema,
 } from './schema/userNotificationsTokens.schema';
+import { NotificationGateway } from './notification.gateway';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import {
     ]),
     EmailModule,
   ],
-  providers: [NotificationService],
+  providers: [NotificationService, NotificationGateway],
   controllers: [NotificationController],
   exports: [NotificationService],
 })
