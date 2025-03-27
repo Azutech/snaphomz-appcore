@@ -144,7 +144,7 @@ export default class NotificationService {
       // throw new Error('Failed to send notification');
     }
   }
-  
+
   async createNotification(
     createMessageNotificationDto: CreateMessageNotificationDto,
   ): Promise<Notification> {

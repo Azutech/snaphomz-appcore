@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schema/user.schema';
@@ -76,77 +80,95 @@ export class UsersService {
         token,
       };
     } catch (err) {
-      throw new InternalServerErrorException(`Server Error`)
+      throw new InternalServerErrorException(`Server Error: ${err.message}`);
     }
   }
 
   async saveUserDocuments(user: User, dto: SaveUserDocumentsDto) {
-    const docs = dto.documents.map((x: any) => {
-      return {
-        ...x,
-        user: user._id,
-      };
-    });
+    try {
+      if (!user || !user._id) {
+        throw new BadRequestException('User not found. Please try again.');
+      }
+      const docs = dto.documents.map((x: any) => {
+        return {
+          ...x,
+          user: user._id,
+        };
+      });
 
-    const documents = await this.userDocumentModel.insertMany(docs);
+      const documents = await this.userDocumentModel.insertMany(docs);
 
-    // Get document names for the notification
-    const documentNames = documents.map((doc) => doc.name);
+      // Get document names for the notification
+      const documentNames = documents.map((doc) => doc.name);
 
-    await this.notificationService.createNotification({
-      title: `User Document saved`,
-      body: `${user.fullname}, added new documents ${documentNames.join(', ')}`,
-      user: user._id.toString(),
-      userType: NotificationUserType.user,
-    });
+      await this.notificationService.createNotification({
+        title: `User Document saved`,
+        body: `${user.fullname}, added new documents ${documentNames.join(', ')}`,
+        user: user._id.toString(),
+        userType: NotificationUserType.user,
+      });
 
-    // Return only name and thumbnail fields from the documents
-    return documents.map((doc) => ({
-      name: doc.name,
-      thumbNail: doc.thumbNail,
-    }));
+      // Return only name and thumbnail fields from the documents
+      return documents.map((doc) => ({
+        name: doc.name,
+        thumbNail: doc.thumbNail,
+      }));
+    } catch (err) {
+      throw new InternalServerErrorException(`Server Error: ${err.message}`);
+    }
   }
 
   async savedUserPropertyPreference(user: User, dto: PropertyPreferenceDto) {
-    const property = await this.userModel.findByIdAndUpdate(
-      user.id,
-      {
-        propertyPreference: dto,
-      },
-      {
-        new: true,
-      },
-    );
+    try {
+      if (!user || !user._id) {
+        throw new BadRequestException('User not found. Please try again.');
+      }
+      const property = await this.userModel.findByIdAndUpdate(
+        user.id,
+        {
+          propertyPreference: dto,
+        },
+        {
+          new: true,
+        },
+      );
 
-    await this.notificationService.createNotification({
-      title: `User Document saved`,
-      body: `${user.fullname}, saved property preference ${property.propertyPreference.propertyType}`,
-      user: user._id.toString(),
-      userType: NotificationUserType.user,
-    });
+      await this.notificationService.createNotification({
+        title: `User Document saved`,
+        body: `${user.fullname}, saved property preference ${property.propertyPreference.propertyType}`,
+        user: user._id.toString(),
+        userType: NotificationUserType.user,
+      });
 
-    return property;
+      return property;
+    } catch (err) {
+      throw new InternalServerErrorException(`Server Error: ${err.message}`);
+    }
   }
 
   async completeUserPropertyPreference(user: User, dto: PropertyPreferenceDto) {
-    const onboardedUser = await this.userModel.findByIdAndUpdate(
-      user.id,
-      {
-        propertyPreference: { ...dto, onboardingCompleted: true },
-      },
-      {
-        new: true,
-      },
-    );
+    try {
+      const onboardedUser = await this.userModel.findByIdAndUpdate(
+        user.id,
+        {
+          propertyPreference: { ...dto, onboardingCompleted: true },
+        },
+        {
+          new: true,
+        },
+      );
 
-    await this.notificationService.createNotification({
-      title: `User Document saved`,
-      body: `${user.fullname} successfully completed onboarding`,
-      user: user._id.toString(),
-      userType: NotificationUserType.user,
-    });
+      await this.notificationService.createNotification({
+        title: `User Document saved`,
+        body: `${user.fullname} successfully completed property preference`,
+        user: user._id.toString(),
+        userType: NotificationUserType.user,
+      });
 
-    return onboardedUser;
+      return onboardedUser;
+    } catch (err) {
+      throw new InternalServerErrorException(`Server Error: ${err.message}`);
+    }
   }
 
   async deleteUserDocuments(user: User, id: string) {
@@ -155,6 +177,7 @@ export class UsersService {
   }
 
   async getUserDocuments(user: User, paginationDto: PaginationDto) {
+   try {
     const { page = 1, limit = 10, search } = paginationDto;
     const skip = (page - 1) * limit;
     const query: any = {};
@@ -178,6 +201,10 @@ export class UsersService {
     ]);
 
     return { result, total, page, limit };
+   } catch (err) {
+    throw new InternalServerErrorException(`Server Error: ${err.message}`);
+
+   }
   }
   async updateUserProfile(user: User, data: UpdateUserDto) {
     if (data?.mobile) {

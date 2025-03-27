@@ -108,6 +108,21 @@ export class UsersController {
       message: 'User Documents Found',
     });
   }
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getUserProfile(
+    @Res() res: Response,
+    @Req() req: Request,
+  ): Promise<any> {
+    const data = await this.userService.getUserProfile(
+      req.user._id,
+    );
+    this._sendResponse({
+      res,
+      data,
+      message: 'User profile viewed',
+    });
+  }
 
   @UseGuards(JwtAuthGuard)
   @Delete('delete/user-document/:id')
