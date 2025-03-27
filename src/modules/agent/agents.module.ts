@@ -33,6 +33,11 @@ import { NotificationGateway } from '../notification/notification.gateway';
     EmailModule,
   ],
   controllers: [AgentsController],
-  providers: [AgentsService, AgentOrSellerSocketAuthGuard, NotificationService,   NotificationGateway],
+  providers: [
+    AgentsService,
+    AgentOrSellerSocketAuthGuard,
+    NotificationService,
+    NotificationGateway,
+  ],
 })
 export class AgentsModule {}

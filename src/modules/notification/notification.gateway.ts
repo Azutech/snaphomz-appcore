@@ -61,7 +61,7 @@ export class NotificationGateway
       body: message.body,
       user: message.user,
       userType: message.userType,
-    //   read: message.read,
+      //   read: message.read,
     });
   }
 

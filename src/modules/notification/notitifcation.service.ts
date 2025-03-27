@@ -144,34 +144,7 @@ export default class NotificationService {
       // throw new Error('Failed to send notification');
     }
   }
-
-  // async createNotification(data: {
-  //   title: string;
-  //   body: string;
-  //   user: string;
-  //   userType?: NotificationUserType;
-  // }): Promise<any> {
-  //   if (!data.user || !Types.ObjectId.isValid(data.user)) {
-  //     throw new Error('Invalid user ID');
-  //   }
-
-  //   const payload = {
-  //     ...data,
-  //     user: new Types.ObjectId(data.user),
-  //   };
-
-  //   const saved = await this.notificationModel.create(payload);
-  //   const notification = await saved.save();
-
-  //   // Ensure user ID is converted to string
-
-  //   await this.notificationGateway.sendRealTimeNotification(
-  //     data.user,
-  //     notification
-
-  //   );
-  // }
-
+  
   async createNotification(
     createMessageNotificationDto: CreateMessageNotificationDto,
   ): Promise<Notification> {
@@ -190,7 +163,6 @@ export default class NotificationService {
       const saved = await this.notificationModel.create(payload);
 
       await this.notificationGateway.sendRealTimeNotification(
-    
         createMessageNotificationDto,
       );
 

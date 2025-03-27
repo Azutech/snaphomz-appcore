@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from './schema/user.schema';
@@ -28,47 +28,56 @@ export class UsersService {
   ) {}
 
   async onBoardNewuser(userId: string, userDto: CreateUserDto) {
-    const userExists = await this.userModel.findById(userId);
-    if (!userExists) {
-      throw new BadRequestException('Account not found please sign up again.');
-    }
+    try {
+      const userExists = await this.userModel.findById(userId);
+      if (!userExists) {
+        throw new BadRequestException(
+          'Account not found please sign up again.',
+        );
+      }
 
-    const payload = {
-      ...userDto,
-      fullname: `${userDto.firstname} ${userDto.lastname}`,
-      password: crypto.createHash('md5').update(userDto.password).digest('hex'),
-    };
+      const payload = {
+        ...userDto,
+        fullname: `${userDto.firstname} ${userDto.lastname}`,
+        password: crypto
+          .createHash('md5')
+          .update(userDto.password)
+          .digest('hex'),
+      };
 
-    const user = await this.userModel.findByIdAndUpdate(userId, payload, {
-      new: true,
-    });
+      const user = await this.userModel.findByIdAndUpdate(userId, payload, {
+        new: true,
+      });
 
-    await this.notificationService.createNotification({
-      title: `New User Onboarded:  Welcome`,
-      body: `Welcome to Snaphomz ${user.fullname}, We will make your real estate dreams come through`,
-      user: user._id.toString(),
-      userType: NotificationUserType.user,
-    });
+      await this.notificationService.createNotification({
+        title: `New User Onboarded:  Welcome`,
+        body: `Welcome to Snaphomz ${user.fullname}, We will make your real estate dreams come through`,
+        user: user._id.toString(),
+        userType: NotificationUserType.user,
+      });
 
-    const token = createUserJwtToken({
-      id: user._id,
-      email: user.email,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      fullname: user.fullname,
-      account_type: user.account_type,
-    });
-    return {
-      user: {
+      const token = createUserJwtToken({
         id: user._id,
         email: user.email,
         firstname: user.firstname,
         lastname: user.lastname,
         fullname: user.fullname,
         account_type: user.account_type,
-      },
-      token,
-    };
+      });
+      return {
+        user: {
+          id: user._id,
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          fullname: user.fullname,
+          account_type: user.account_type,
+        },
+        token,
+      };
+    } catch (err) {
+      throw new InternalServerErrorException(`Server Error`)
+    }
   }
 
   async saveUserDocuments(user: User, dto: SaveUserDocumentsDto) {
@@ -78,28 +87,28 @@ export class UsersService {
         user: user._id,
       };
     });
-    
+
     const documents = await this.userDocumentModel.insertMany(docs);
-    
+
     // Get document names for the notification
-    const documentNames = documents.map(doc => doc.name);
-    
+    const documentNames = documents.map((doc) => doc.name);
+
     await this.notificationService.createNotification({
       title: `User Document saved`,
       body: `${user.fullname}, added new documents ${documentNames.join(', ')}`,
       user: user._id.toString(),
       userType: NotificationUserType.user,
     });
-    
+
     // Return only name and thumbnail fields from the documents
-    return documents.map(doc => ({
+    return documents.map((doc) => ({
       name: doc.name,
-      thumbNail: doc.thumbNail
+      thumbNail: doc.thumbNail,
     }));
   }
 
   async savedUserPropertyPreference(user: User, dto: PropertyPreferenceDto) {
-    const property =  await this.userModel.findByIdAndUpdate(
+    const property = await this.userModel.findByIdAndUpdate(
       user.id,
       {
         propertyPreference: dto,
@@ -116,11 +125,11 @@ export class UsersService {
       userType: NotificationUserType.user,
     });
 
-    return property
+    return property;
   }
 
   async completeUserPropertyPreference(user: User, dto: PropertyPreferenceDto) {
-   const onboardedUser = await this.userModel.findByIdAndUpdate(
+    const onboardedUser = await this.userModel.findByIdAndUpdate(
       user.id,
       {
         propertyPreference: { ...dto, onboardingCompleted: true },
@@ -137,7 +146,7 @@ export class UsersService {
       userType: NotificationUserType.user,
     });
 
-    return onboardedUser
+    return onboardedUser;
   }
 
   async deleteUserDocuments(user: User, id: string) {
