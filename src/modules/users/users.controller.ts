@@ -114,9 +114,7 @@ export class UsersController {
     @Res() res: Response,
     @Req() req: Request,
   ): Promise<any> {
-    const data = await this.userService.getUserProfile(
-      req.user._id,
-    );
+    const data = await this.userService.getUserProfile(req.user._id);
     this._sendResponse({
       res,
       data,

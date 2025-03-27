@@ -177,34 +177,33 @@ export class UsersService {
   }
 
   async getUserDocuments(user: User, paginationDto: PaginationDto) {
-   try {
-    const { page = 1, limit = 10, search } = paginationDto;
-    const skip = (page - 1) * limit;
-    const query: any = {};
-    if (search) {
-      query['$or'] = [
-        {
-          name: new RegExp(new RegExp(search, 'i'), 'i'),
-        },
-        {
-          documentType: new RegExp(new RegExp(search, 'i'), 'i'),
-        },
-      ];
+    try {
+      const { page = 1, limit = 10, search } = paginationDto;
+      const skip = (page - 1) * limit;
+      const query: any = {};
+      if (search) {
+        query['$or'] = [
+          {
+            name: new RegExp(new RegExp(search, 'i'), 'i'),
+          },
+          {
+            documentType: new RegExp(new RegExp(search, 'i'), 'i'),
+          },
+        ];
+      }
+      const queryObject = search
+        ? { ...query, user: user._id }
+        : { user: user._id };
+      console.log(queryObject);
+      const [result, total] = await Promise.all([
+        this.userDocumentModel.find(queryObject).skip(skip).limit(limit).exec(),
+        this.userDocumentModel.countDocuments(queryObject),
+      ]);
+
+      return { result, total, page, limit };
+    } catch (err) {
+      throw new InternalServerErrorException(`Server Error: ${err.message}`);
     }
-    const queryObject = search
-      ? { ...query, user: user._id }
-      : { user: user._id };
-    console.log(queryObject);
-    const [result, total] = await Promise.all([
-      this.userDocumentModel.find(queryObject).skip(skip).limit(limit).exec(),
-      this.userDocumentModel.countDocuments(queryObject),
-    ]);
-
-    return { result, total, page, limit };
-   } catch (err) {
-    throw new InternalServerErrorException(`Server Error: ${err.message}`);
-
-   }
   }
   async updateUserProfile(user: User, data: UpdateUserDto) {
     if (data?.mobile) {
