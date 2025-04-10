@@ -51,7 +51,7 @@ export class AgentsService {
     });
 
     await this.notificationService.createNotification({
-      title: `New User Onboarded:  Welcome`,
+      title: `New Agent Onboarded:  Welcome`,
       body: `Welcome to Snaphomz ${agent.fullname}, We will make your real estate dreams come through`,
       user: agent._id.toString(),
       userType: NotificationUserType.agent,
@@ -172,6 +172,14 @@ export class AgentsService {
       avatar: updatedAgent?.avatar,
     });
 
+
+    await this.notificationService.createNotification({
+      title: `Agent Updated Profile`,
+      body: `${updatedAgent?.fullname} has updated their profile`,
+      user: agent._id.toString(),
+      userType: NotificationUserType.agent,
+    });
+
     return {
       Agent: {
         id: updatedAgent?._id,
@@ -186,6 +194,9 @@ export class AgentsService {
       },
       token,
     };
+
+
+    
   }
 
   async getAgentProfile(AgentId: string): Promise<Agent> {
