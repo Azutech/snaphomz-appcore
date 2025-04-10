@@ -28,7 +28,7 @@ export class InviteController {
     @Req() req: Request,
   ) {
     const invite = await this.inviteService.inviteAnAgent(
-      req.user.id,
+      req.user._id,
       onboardAgentDto,
     );
     this._sendResponse({
