@@ -80,42 +80,7 @@ export class ZipformsService {
       );
     }
   }
-  // async createWebhook(
-  //   contextId: string,
-  //   sharedKey: string,
-  //   payload: any,
-  //   scopeId: any,
-  // ): Promise<any> {
-  //   const headers = {
-  //     'Content-Type': 'application/json',
-  //     'X-Auth-ContextId': contextId, // Custom header for the context ID
-  //     'X-Auth-SharedKey': sharedKey, // Custom header for the shared key
-  //   };
 
-  //   try {
-  //     // const sharedKey = this.configService.get<string>('ZIPFORM_SHARED_KEY');
-  //     const url = this.configService.get<string>('ZIPFORM_URL');
-  //     const transactionUrl = `${url}/api/hook${scopeId}`;
-
-  //     const response = await firstValueFrom(
-  //       this.httpService.post(transactionUrl, payload, {
-  //         headers,
-  //       }),
-  //     );
-  //     return response.data; // Return the transaction data
-  //   } catch (error) {
-  //     // Handle errors appropriately
-  //     const errorMessage =
-  //       error.response?.data?.error || 'Failed to create webhook.';
-  //     throw new HttpException(
-  //       {
-  //         status: HttpStatus.BAD_REQUEST,
-  //         error: errorMessage,
-  //       },
-  //       HttpStatus.BAD_REQUEST,
-  //     );
-  //   }
-  // }
 
   async createWebhook(
     contextId: string,
