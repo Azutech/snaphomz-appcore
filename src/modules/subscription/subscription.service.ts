@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import Stripe from 'stripe';
 import * as moment from 'moment';
 import { Agent } from '../agent/schema/agent.schema';
+import NotificationService from '../notification/notitifcation.service';
 
 @Injectable()
 export class SubscriptionService {
@@ -22,6 +23,8 @@ export class SubscriptionService {
     @InjectModel(Subscription.name)
     private readonly subscriptionModel: Model<Subscription>,
     private readonly stripeService: StripeService,
+    private readonly notificationService: NotificationService,
+    
   ) {}
   async createPlan(data: Partial<Plan>) {
     const planExists = await this.planModel.find({
