@@ -281,7 +281,7 @@ export class AuthService {
       token_expiry_time: moment().add(10, 'minutes').toDate(),
     });
 
-    // await user.save();
+    await user.save();
 
     const url = `${this.configService.get<string>('BASE_URL')}`;
 
