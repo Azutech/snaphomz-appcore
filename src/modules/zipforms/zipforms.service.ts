@@ -81,7 +81,6 @@ export class ZipformsService {
     }
   }
 
-
   async createWebhook(
     contextId: string,
     sharedKey: string,

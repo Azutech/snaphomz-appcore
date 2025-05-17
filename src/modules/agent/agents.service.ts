@@ -172,7 +172,6 @@ export class AgentsService {
       avatar: updatedAgent?.avatar,
     });
 
-
     await this.notificationService.createNotification({
       title: `Agent Updated Profile`,
       body: `${updatedAgent?.fullname} has updated their profile`,
@@ -194,9 +193,6 @@ export class AgentsService {
       },
       token,
     };
-
-
-    
   }
 
   async getAgentProfile(AgentId: string): Promise<Agent> {

@@ -281,20 +281,23 @@ export class AuthService {
       token_expiry_time: moment().add(10, 'minutes').toDate(),
     });
 
-    await user.save();
+    // await user.save();
 
     const url = `${this.configService.get<string>('BASE_URL')}`;
 
     const link = `${url}/auth/user/verify/code`;
+
+    console.log(link);
     function emailDispatcherPayload(): MailDispatcherDto {
       return {
         to: emailDto.email,
-        from: 'contact@ocreal.online',
+        from: 'support@snaphomz.com',
         subject: 'Confirm Verification Code',
         html: accountVerification(token, link),
       };
     }
     await this.emailService.emailDispatcher(emailDispatcherPayload());
+    console.log(token);
     return {
       token,
     };

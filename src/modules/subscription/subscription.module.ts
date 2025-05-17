@@ -9,8 +9,14 @@ import { StripeModule } from 'src/services/stripe/stripe.module';
 import { AgentSchema, Agent } from '../agent/schema/agent.schema';
 import NotificationService from '../notification/notitifcation.service';
 import { EmailService } from 'src/services/email/email.service';
-import { Notification, NotificationSchema } from '../notification/schema/notification.schema';
-import { UserNotificationTokens, UserNotificationTokensSchema } from '../notification/schema/userNotificationsTokens.schema';
+import {
+  Notification,
+  NotificationSchema,
+} from '../notification/schema/notification.schema';
+import {
+  UserNotificationTokens,
+  UserNotificationTokensSchema,
+} from '../notification/schema/userNotificationsTokens.schema';
 import { NotificationGateway } from '../notification/notification.gateway';
 
 @Module({
@@ -21,12 +27,20 @@ import { NotificationGateway } from '../notification/notification.gateway';
       { name: Subscription.name, schema: SubscriptionSchema },
       { name: Agent.name, schema: AgentSchema },
       { name: Notification.name, schema: NotificationSchema },
-      { name: UserNotificationTokens.name, schema: UserNotificationTokensSchema }, 
+      {
+        name: UserNotificationTokens.name,
+        schema: UserNotificationTokensSchema,
+      },
     ]),
     StripeModule,
   ],
   controllers: [SubscriptionController],
-  providers: [SubscriptionService, NotificationService, EmailService, NotificationGateway],
+  providers: [
+    SubscriptionService,
+    NotificationService,
+    EmailService,
+    NotificationGateway,
+  ],
   exports: [SubscriptionService],
 })
 export class SubscriptionModule {}

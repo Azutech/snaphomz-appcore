@@ -23,6 +23,6 @@ import NotificationService from '../notification/notitifcation.service';
     EmailModule,
   ],
   controllers: [InviteController],
-  providers: [InviteService, ],
+  providers: [InviteService],
 })
 export class InviteModule {}

@@ -48,9 +48,21 @@ export class EmailService {
     };
 
     const transporter = nodemailer.createTransport({
-      host: configs.EMAIL_HOST,
-      port: parseInt(configs.EMAIL_PORT || '465'),
-      secure: true, // true for 465, false for other ports.
+      // host: configs.EMAIL_HOST,
+      // port: parseInt(configs.EMAIL_PORT || '465'),
+      // secure: true, // true for 465, false for other ports.
+      // auth: {
+      //   user: configs.EMAIL_USERNAME,
+      //   pass: configs.EMAIL_PASSWORD,
+      // },
+      // host: configs.EMAIL_HOST, // Should be `smtp-mail.outlook.com`
+      // port: parseInt(configs.EMAIL_PORT || '465'), // Use 587 (not 465)
+      // secure: true, // Required for port 587 (STARTTLS)
+      // requireTLS: true, // Enforce TLS encryption
+      host: 'smtp-mail.outlook.com',
+      port: 587,
+      secure: false, // Use false for STARTTLS on port 587
+      requireTLS: true,
       auth: {
         user: configs.EMAIL_USERNAME,
         pass: configs.EMAIL_PASSWORD,
@@ -60,6 +72,8 @@ export class EmailService {
     transporter
       .sendMail(mailOptions)
       .then((response: any) => {
+        console.log('Email response:', response); // 👈 Added detailed response log
+
         this.logger.log('Email sent successfully');
       })
       .catch((error) => {

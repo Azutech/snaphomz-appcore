@@ -24,7 +24,6 @@ export class SubscriptionService {
     private readonly subscriptionModel: Model<Subscription>,
     private readonly stripeService: StripeService,
     private readonly notificationService: NotificationService,
-    
   ) {}
   async createPlan(data: Partial<Plan>) {
     const planExists = await this.planModel.find({
