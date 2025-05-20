@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Agent } from 'src/modules/agent/schema/agent.schema';
 import { User } from 'src/modules/users/schema/user.schema';
+import { NotificationType } from '../enum/enum';
 
 export enum NotificationUserType {
   agent = 'Agent',
@@ -32,6 +33,9 @@ export class Notification {
 
   @Prop({ type: String, default: false })
   otherId: string;
+
+  @Prop({ type: String, default: false })
+  notificationType: NotificationType;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

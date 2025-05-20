@@ -65,6 +65,7 @@ import { BuyerProperyTermsAndAgreement } from './schema/buyerPropertyTermsAndAgr
 import { AcceptTermsDto } from './dto/buyerPropertyAgreement.dto';
 import NotificationService from '../notification/notitifcation.service';
 import { NotificationUserType } from '../notification/schema/notification.schema';
+import { NotificationType } from '../notification/enum/enum';
 
 @Injectable()
 export class PropertyService {
@@ -154,6 +155,8 @@ export class PropertyService {
       body: `${user.fullname} just submitted new documents: ${termsAndAgreement.listingId}. Please review them as part of the property agreement process.`,
       user: user._id.toString(),
       userType: NotificationUserType.user,
+      otherId: '',
+      notificationType: NotificationType.PROPERTY,
     });
     return termsAndAgreement;
   }

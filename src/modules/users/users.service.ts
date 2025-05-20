@@ -20,6 +20,7 @@ import { PaginationDto } from 'src/constants/pagination.dto';
 import { PropertyPreferenceDto } from './dto/propertyPreference.dto';
 import NotificationService from '../notification/notitifcation.service';
 import { NotificationUserType } from '../notification/schema/notification.schema';
+import { NotificationType } from '../notification/enum/enum';
 
 @Injectable()
 export class UsersService {
@@ -58,6 +59,8 @@ export class UsersService {
         body: `Welcome to Snaphomz ${user.fullname}, We will make your real estate dreams come through`,
         user: user._id.toString(),
         userType: NotificationUserType.user,
+        otherId: '',
+        notificationType: NotificationType.USER,
       });
 
       const token = createUserJwtToken({
@@ -106,6 +109,8 @@ export class UsersService {
         body: `${user.fullname}, added new documents ${documentNames.join(', ')}`,
         user: user._id.toString(),
         userType: NotificationUserType.user,
+        otherId: '',
+        notificationType: NotificationType.USER,
       });
 
       // Return only name and thumbnail fields from the documents
@@ -138,6 +143,8 @@ export class UsersService {
         body: `${user.fullname}, saved property preference ${property.propertyPreference.propertyType}`,
         user: user._id.toString(),
         userType: NotificationUserType.user,
+        otherId: '',
+        notificationType: NotificationType.USER,
       });
 
       return property;
@@ -163,6 +170,8 @@ export class UsersService {
         body: `${user.fullname} successfully completed property preference`,
         user: user._id.toString(),
         userType: NotificationUserType.user,
+        otherId: '',
+        notificationType: NotificationType.USER,
       });
 
       return onboardedUser;

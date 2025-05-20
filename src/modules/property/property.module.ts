@@ -43,8 +43,14 @@ import {
 import { EmailService } from 'src/services/email/email.service';
 import NotificationService from '../notification/notitifcation.service';
 import { NotificationGateway } from '../notification/notification.gateway';
-import { Notification, NotificationSchema } from '../notification/schema/notification.schema';
-import { UserNotificationTokens, UserNotificationTokensSchema } from '../notification/schema/userNotificationsTokens.schema';
+import {
+  Notification,
+  NotificationSchema,
+} from '../notification/schema/notification.schema';
+import {
+  UserNotificationTokens,
+  UserNotificationTokensSchema,
+} from '../notification/schema/userNotificationsTokens.schema';
 
 @Module({
   imports: [
@@ -63,7 +69,10 @@ import { UserNotificationTokens, UserNotificationTokensSchema } from '../notific
       { name: SharePropertyDoc.name, schema: SharePropertyDocSchema },
       { name: AgentContract.name, schema: AgentContractSchema },
       { name: Notification.name, schema: NotificationSchema },
-      { name: UserNotificationTokens.name, schema: UserNotificationTokensSchema },
+      {
+        name: UserNotificationTokens.name,
+        schema: UserNotificationTokensSchema,
+      },
       {
         name: BuyerProperyTermsAndAgreement.name,
         schema: BuyerProperyTermsAndAgreementSchema,
@@ -71,6 +80,11 @@ import { UserNotificationTokens, UserNotificationTokensSchema } from '../notific
     ]),
   ],
   controllers: [PropertyController],
-  providers: [PropertyService, EmailService, NotificationService, NotificationGateway],
+  providers: [
+    PropertyService,
+    EmailService,
+    NotificationService,
+    NotificationGateway,
+  ],
 })
 export class PropertyModule {}

@@ -16,6 +16,7 @@ import { PaginationDto } from '../../constants/pagination.dto';
 import { Property } from '../property/schema/property.schema';
 import { NotificationUserType } from '../notification/schema/notification.schema';
 import NotificationService from '../notification/notitifcation.service';
+import { NotificationType } from '../notification/enum/enum';
 
 @Injectable()
 export class AgentsService {
@@ -55,6 +56,8 @@ export class AgentsService {
       body: `Welcome to Snaphomz ${agent.fullname}, We will make your real estate dreams come through`,
       user: agent._id.toString(),
       userType: NotificationUserType.agent,
+      otherId: '',
+      notificationType: NotificationType.AGENT,
     });
 
     const token = createAgentJwtToken({
@@ -177,6 +180,8 @@ export class AgentsService {
       body: `${updatedAgent?.fullname} has updated their profile`,
       user: agent._id.toString(),
       userType: NotificationUserType.agent,
+      otherId: '',
+      notificationType: NotificationType.AGENT,
     });
 
     return {

@@ -1,4 +1,5 @@
 import { IsBoolean, IsNotEmpty, IsString } from 'class-validator';
+import { NotificationType } from '../enum/enum';
 
 export class CreateMessageNotificationDto {
   @IsNotEmpty()
@@ -17,7 +18,10 @@ export class CreateMessageNotificationDto {
   @IsString()
   userType: string;
 
-  // @IsNotEmpty()
-  // @IsBoolean()
-  // read: boolean;
+  @IsString()
+  otherId: string;
+
+  @IsNotEmpty()
+  @IsString()
+  notificationType: NotificationType;
 }
