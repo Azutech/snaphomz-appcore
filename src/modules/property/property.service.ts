@@ -63,6 +63,8 @@ import { generateReferralCode } from 'src/utils/randome-generators';
 import { AgentContract } from './schema/agentContract.schema';
 import { BuyerProperyTermsAndAgreement } from './schema/buyerPropertyTermsAndAgreement.schema';
 import { AcceptTermsDto } from './dto/buyerPropertyAgreement.dto';
+import NotificationService from '../notification/notitifcation.service';
+import { NotificationUserType } from '../notification/schema/notification.schema';
 
 @Injectable()
 export class PropertyService {
@@ -92,6 +94,7 @@ export class PropertyService {
     private readonly agentContractModel: Model<AgentContract>,
     @InjectModel(BuyerProperyTermsAndAgreement.name)
     private readonly buyerProperyTermsAndAgreementModel: Model<BuyerProperyTermsAndAgreement>,
+    private readonly notificationService: NotificationService,
 
     @InjectModel(User.name)
     private readonly userModel: Model<User>,
@@ -145,6 +148,13 @@ export class PropertyService {
         user: new mongoose.Types.ObjectId(user.id),
         ipAddress,
       });
+
+    await this.notificationService.createNotification({
+      title: `Buyers Property Submitted`,
+      body: `${user.fullname} just submitted new documents: ${termsAndAgreement.listingId}. Please review them as part of the property agreement process.`,
+      user: user._id.toString(),
+      userType: NotificationUserType.user,
+    });
     return termsAndAgreement;
   }
 

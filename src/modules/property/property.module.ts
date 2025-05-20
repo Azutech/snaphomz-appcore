@@ -41,6 +41,10 @@ import {
   BuyerProperyTermsAndAgreementSchema,
 } from './schema/buyerPropertyTermsAndAgreement.schema';
 import { EmailService } from 'src/services/email/email.service';
+import NotificationService from '../notification/notitifcation.service';
+import { NotificationGateway } from '../notification/notification.gateway';
+import { Notification, NotificationSchema } from '../notification/schema/notification.schema';
+import { UserNotificationTokens, UserNotificationTokensSchema } from '../notification/schema/userNotificationsTokens.schema';
 
 @Module({
   imports: [
@@ -58,6 +62,8 @@ import { EmailService } from 'src/services/email/email.service';
       { name: PropertyTourSchedule.name, schema: PropertyTourScheduleSchema },
       { name: SharePropertyDoc.name, schema: SharePropertyDocSchema },
       { name: AgentContract.name, schema: AgentContractSchema },
+      { name: Notification.name, schema: NotificationSchema },
+      { name: UserNotificationTokens.name, schema: UserNotificationTokensSchema },
       {
         name: BuyerProperyTermsAndAgreement.name,
         schema: BuyerProperyTermsAndAgreementSchema,
@@ -65,6 +71,6 @@ import { EmailService } from 'src/services/email/email.service';
     ]),
   ],
   controllers: [PropertyController],
-  providers: [PropertyService, EmailService],
+  providers: [PropertyService, EmailService, NotificationService, NotificationGateway],
 })
 export class PropertyModule {}

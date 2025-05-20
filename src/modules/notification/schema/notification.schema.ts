@@ -29,6 +29,9 @@ export class Notification {
 
   @Prop({ type: Boolean, default: false })
   read: boolean;
+
+  @Prop({ type: String, default: false })
+  otherId: string;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

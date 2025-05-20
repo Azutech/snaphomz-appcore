@@ -297,7 +297,7 @@ export class AuthService {
       };
     }
     await this.emailService.emailDispatcher(emailDispatcherPayload());
-    
+
     return {
       token,
     };
