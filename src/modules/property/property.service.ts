@@ -291,51 +291,71 @@ export class PropertyService {
     if (!property) {
       throw new NotFoundException("This property doesn't exist");
     }
-    if (
-      property.seller.toString() !== user.id &&
-      property.sellerAgent.toString() !== user.id
-    ) {
+
+    const userId = user.id?.toString();
+
+    const isSeller = property.seller?.toString() === userId;
+    const isSellerAgent = property.sellerAgent?.toString() === userId;
+
+    if (!isSeller && !isSellerAgent) {
       throw new UnauthorizedException(
         'You are not permitted to perform this action.',
       );
     }
-    let shareToken: null | string = null;
-    while (!shareToken) {
+
+    // Generate a unique share token
+    let shareToken: string | null = null;
+    do {
       shareToken = generateReferralCode(16);
       const tokenExists = await this.sharePropertyDocModel.findOne({
         shareToken,
       });
       if (tokenExists) shareToken = null;
-    }
+    } while (!shareToken);
 
+    // Prepare and save the document sharing payload
     const payload = {
       ...dto,
-      seller: property?.seller,
-      sellerAgent: property?.sellerAgent,
-      property: property.id,
+      seller: property.seller,
+      sellerAgent: property.sellerAgent,
+      property: property._id,
       shareToken,
     };
 
-    const payloadModel = await this.sharePropertyDocModel.create(payload);
-    const sharedDoc = await payloadModel.save();
-    const document = await this.sharePropertyDocModel
+    const sharedDoc = await this.sharePropertyDocModel.create(payload);
+    const populatedDoc = await this.sharePropertyDocModel
       .findById(sharedDoc._id)
       .populate('seller')
       .populate('sellerAgent')
       .populate('property');
 
+    // Prepare email content
     const emailBody = {
       recipientName: dto.name,
-      senderName: user?.firstname,
+      senderName: user.firstname,
       documentLink: `${configs.SELF_BASE_URL}/property/property-documents/${sharedDoc._id}`,
     };
+
     await this.emailService.sendEmail({
       email: dto.email,
-      subject: `Property Document Available`,
+      subject: 'Property Document Available',
       template: 'property_document',
       body: emailBody,
     });
-    return document;
+
+    // Notify the agent or user
+    await this.notificationService.createNotification({
+      title: 'Property Document Shared',
+      body: `${user.fullname} has shared a property document.`,
+      user: user._id.toString(),
+      userType: isSeller
+        ? NotificationUserType.user
+        : NotificationUserType.agent,
+      otherId: sharedDoc._id.toString(),
+      notificationType: NotificationType.AGENT || NotificationType.USER,
+    });
+
+    return populatedDoc;
   }
 
   async getAllSharedDocuments(user: User | Agent, id: string) {
