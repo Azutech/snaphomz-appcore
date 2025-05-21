@@ -645,19 +645,16 @@ export class PropertyService {
       },
     );
     if (property.seller) {
-      // await this.notificationModel.create({
-      //   user: property.seller as unknown as string,
-      //   body: `${user.firstname} ${user.lastname} has left the property at ${property.propertyAddressDetails.formattedAddress}`,
-      //   title: 'Your Agent Has Left Your Property',
-      //   userType: NotificationUserType.user,
-      // });
+      await this.notificationService.createNotification({
+        user: user.id,
+        body: `You have left the property at ${property.propertyAddressDetails.formattedAddress}`,
+        title: 'You Has Left A Property',
+        userType: NotificationUserType.agent,
+        otherId: '',
+        notificationType: NotificationType.PROPERTY,
+      });
     }
-    // await this.notificationModel.create({
-    //   user: user.id,
-    //   body: `You have left the property at ${property.propertyAddressDetails.formattedAddress}`,
-    //   title: 'You Has Left A Property',
-    //   userType: NotificationUserType.agent,
-    // });
+
     return property;
   }
 
