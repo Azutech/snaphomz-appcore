@@ -603,19 +603,16 @@ export class PropertyService {
       },
     );
     if (property.seller) {
-      // await this.notificationModel.create({
-      //   title: 'Your Agent Has Left Your Property',
-      //   body: `${agent.firstname} ${agent.lastname} has left the property at ${property.propertyAddressDetails.formattedAddress}`,
-      //   user: property.seller as unknown as string,
-      //   userType: NotificationUserType.user,
-      // });
+      await this.notificationService.createNotification({
+        user: agent.id,
+        body: `You have left the property at ${property.propertyAddressDetails.formattedAddress}`,
+        title: 'You Has Left A Property',
+        userType: NotificationUserType.agent,
+        otherId: '',
+        notificationType: NotificationType.PROPERTY,
+      });
     }
-    // await this.notificationModel.create({
-    //   user: agent.id,
-    //   body: `You have left the property at ${property.propertyAddressDetails.formattedAddress}`,
-    //   title: 'You Has Left A Property',
-    //   userType: NotificationUserType.agent,
-    // });
+
     return property;
   }
 
