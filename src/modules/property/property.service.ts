@@ -840,63 +840,88 @@ export class PropertyService {
     const property = await this.propertyModel.findOne({
       _id: new Types.ObjectId(dto.property),
       isDeleted: { $ne: true },
-      $or: [
-        {
-          seller: user._id,
-        },
-        {
-          sellerAgent: user._id,
-        },
-      ],
+      $or: [{ seller: user._id }, { sellerAgent: user._id }],
     });
+
     if (!property) {
       throw new NotFoundException('Property not found.');
     }
+
+    const isSeller = property.seller?.toString() === user._id.toString();
+
     const newSchedule = {
       ...dto,
       property: new Types.ObjectId(dto.property),
       seller: property.seller,
       sellerAgent: property.sellerAgent,
     };
-    const saved = await this.propertyTourScheduleModel.create(newSchedule);
-    await saved.save();
+
+    const createdSchedule =
+      await this.propertyTourScheduleModel.create(newSchedule);
+
     const schedule = await this.propertyTourScheduleModel
-      .findById(saved._id)
+      .findById(createdSchedule._id)
       .populate('property')
       .populate('seller')
       .populate('sellerAgent')
       .exec();
+
+    // Create a notification
+    await this.notificationService.createNotification({
+      title: 'New Property Tour Scheduled',
+      body: `${user.fullname} has scheduled a property tour.`,
+      user: user._id.toString(),
+      userType: isSeller
+        ? NotificationUserType.user
+        : NotificationUserType.agent,
+      otherId: schedule._id.toString(),
+      notificationType: isSeller
+        ? NotificationType.USER
+        : NotificationType.AGENT,
+    });
+
     return schedule;
   }
 
   async agentOrSellerUpdateTourSchedule(
-    id: string,
-    user: User | Agent,
-    dto: UpdatePropertyTourScheduleDto,
-  ) {
-    const propertyTourSchedule = await this.propertyTourScheduleModel.findOne({
-      _id: new Types.ObjectId(id),
-      $or: [
-        {
-          seller: user._id,
-        },
-        {
-          sellerAgent: user._id,
-        },
-      ],
-    });
-    if (!propertyTourSchedule) {
-      throw new NotFoundException('Property Tour Schedule not found.');
-    }
+  id: string,
+  user: User | Agent,
+  dto: UpdatePropertyTourScheduleDto,
+) {
+  const propertyTourSchedule = await this.propertyTourScheduleModel.findOne({
+    _id: new Types.ObjectId(id),
+    $or: [
+      { seller: user._id },
+      { sellerAgent: user._id },
+    ],
+  });
 
-    const schedule = await this.propertyTourScheduleModel
-      .findByIdAndUpdate(propertyTourSchedule._id, dto, { new: true })
-      .populate('property')
-      .populate('seller')
-      .populate('sellerAgent')
-      .exec();
-    return schedule;
+  if (!propertyTourSchedule) {
+    throw new NotFoundException('Property Tour Schedule not found.');
   }
+
+  const isSeller = propertyTourSchedule.seller?.toString() === user._id.toString();
+
+  const updatedSchedule = await this.propertyTourScheduleModel
+    .findByIdAndUpdate(propertyTourSchedule._id, dto, { new: true })
+    .populate('property')
+    .populate('seller')
+    .populate('sellerAgent')
+    .exec();
+
+  await this.notificationService.createNotification({
+    title: 'Property Tour Updated',
+    body: `${user.fullname} has updated a scheduled property tour.`,
+    user: user._id.toString(),
+    userType: isSeller ? NotificationUserType.user : NotificationUserType.agent,
+    otherId: updatedSchedule._id.toString(),
+    notificationType: isSeller ? NotificationType.USER : NotificationType.AGENT,
+  });
+
+  return updatedSchedule;
+}
+
+
 
   async agentOrSellerDeleteTourSchedule(id: string, user: User | Agent) {
     const propertyTourSchedule = await this.propertyTourScheduleModel.findOne({
