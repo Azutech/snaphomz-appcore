@@ -1068,105 +1068,198 @@ export class PropertyService {
     return { result: data, total, page, limit };
   }
 
+
   async sellerOrAgentPublishOrUnpublishProperty(
-    id: string,
-    user: User | Agent,
-    dto: SellerOrAgentPublishPropertyDto,
+  id: string,
+  user: User | Agent,
+  dto: SellerOrAgentPublishPropertyDto,
+) {
+  const { publish } = dto;
+
+  const property = await this.propertyModel.findOne({
+    _id: new Types.ObjectId(id),
+    isDeleted: { $ne: true },
+    $or: [
+      { seller: user._id },
+      { sellerAgent: user._id },
+    ],
+  });
+
+  if (!property) {
+    throw new NotFoundException('Property not found');
+  }
+
+  const isSeller = property.seller?.toString() === user._id.toString();
+  const action = publish ? 'published' : 'unpublished';
+  const message = publish
+    ? `published your property. You can now expect offers on "${property.propertyName}".`
+    : `unpublished your property. There will be no new offers on "${property.propertyName}".`;
+
+  let update: any = null;
+
+  if (
+    publish &&
+    [PropertyStatusEnum.properyOwnershipVerified, PropertyStatusEnum.unpublished].includes(
+      property.currentStatus as PropertyStatusEnum,
+    )
   ) {
-    const { publish } = dto;
-
-    const property = await this.propertyModel.findOne({
-      _id: new Types.ObjectId(id),
-      isDeleted: { $ne: true },
-      $or: [
-        {
-          seller: user._id,
-        },
-        {
-          sellerAgent: user._id,
-        },
-      ],
-    });
-    if (!property) {
-      throw new NotFoundException('Property not found');
-    }
-    const positiveMessage = `published your property, you can now expect offers on your ${property.propertyName} property.`;
-    const negetiveMessage = `unpublished your property, there will be no new offers on your ${property.propertyName} property.`;
-    if (
-      [
-        PropertyStatusEnum.properyOwnershipVerified,
-        PropertyStatusEnum.unpublished,
-      ].includes(property.currentStatus as PropertyStatusEnum) &&
-      publish
-    ) {
-      const update = await this.propertyModel.findByIdAndUpdate(
-        id,
-        {
-          currentStatus: PropertyStatusEnum.nowShowing,
-          $push: {
-            status: {
-              status: PropertyStatusEnum.nowShowing,
-              eventTime: new Date(),
-            },
+    update = await this.propertyModel.findByIdAndUpdate(
+      id,
+      {
+        currentStatus: PropertyStatusEnum.nowShowing,
+        $push: {
+          status: {
+            status: PropertyStatusEnum.nowShowing,
+            eventTime: new Date(),
           },
         },
-        { new: true },
-      );
-
-      if (property.sellerAgent) {
-        // await this.notificationModel.create({
-        //   body: `${user.fullname}, just ${publish ? positiveMessage : negetiveMessage}`,
-        //   title: `${user.fullname}, just ${publish ? 'published' : 'unpublished'} your property.`,
-        //   user: property.sellerAgent as any,
-        //   userType: NotificationUserType.agent,
-        // });
-      }
-      if (property.seller) {
-        // await this.notificationModel.create({
-        //   body: `${user.fullname}, just ${publish ? positiveMessage : negetiveMessage}`,
-        //   title: `${user.fullname}, just ${publish ? 'published' : 'unpublished'} your property.`,
-        //   user: property.seller as any,
-        //   userType: NotificationUserType.user,
-        // });
-      }
-      return update;
-    }
-    if (property.currentStatus == PropertyStatusEnum.nowShowing && !publish) {
-      const update = await this.propertyModel.findByIdAndUpdate(
-        id,
-        {
-          currentStatus: PropertyStatusEnum.unpublished,
-          $push: {
-            status: {
-              status: PropertyStatusEnum.unpublished,
-              eventTime: new Date(),
-            },
+      },
+      { new: true },
+    );
+  } else if (property.currentStatus === PropertyStatusEnum.nowShowing && !publish) {
+    update = await this.propertyModel.findByIdAndUpdate(
+      id,
+      {
+        currentStatus: PropertyStatusEnum.unpublished,
+        $push: {
+          status: {
+            status: PropertyStatusEnum.unpublished,
+            eventTime: new Date(),
           },
         },
-        { new: true },
-      );
-      if (property.sellerAgent) {
-        // await this.notificationModel.create({
-        //   body: `${user.fullname}, just ${publish ? positiveMessage : negetiveMessage}`,
-        //   title: `${user.fullname}, just ${publish ? 'published' : 'unpublished'} your property.`,
-        //   user: property.sellerAgent as any,
-        //   userType: NotificationUserType.agent,
-        // });
-      }
-      if (property.seller) {
-        // await this.notificationModel.create({
-        //   body: `${user.fullname}, just ${publish ? positiveMessage : negetiveMessage}`,
-        //   title: `${user.fullname}, just ${publish ? 'published' : 'unpublished'} your property.`,
-        //   user: property.seller as any,
-        //   userType: NotificationUserType.user,
-        // });
-      }
-      return update;
-    }
-    throw new BadRequestException(
-      'You can not publish this property at this time.',
+      },
+      { new: true },
     );
   }
+
+  if (!update) {
+    throw new BadRequestException('You cannot publish or unpublish this property at this time.');
+  }
+
+  // Send notification to both seller and agent if present
+  const notificationTargets = [
+    { user: property.seller, userType: NotificationUserType.user },
+    { user: property.sellerAgent, userType: NotificationUserType.agent },
+  ];
+
+  for (const target of notificationTargets) {
+    if (target.user) {
+      await this.notificationService.createNotification({
+        title: `Property ${publish ? 'Published' : 'Unpublished'}`,
+        body: `${user.fullname} has ${message}`,
+        user: target.user.toString(),
+        userType: target.userType,
+        otherId: property._id.toString(),
+        notificationType: target.userType === NotificationUserType.user
+          ? NotificationType.USER
+          : NotificationType.AGENT,
+      });
+    }
+  }
+
+  return update;
+}
+
+
+  // async sellerOrAgentPublishOrUnpublishProperty(
+  //   id: string,
+  //   user: User | Agent,
+  //   dto: SellerOrAgentPublishPropertyDto,
+  // ) {
+  //   const { publish } = dto;
+
+  //   const property = await this.propertyModel.findOne({
+  //     _id: new Types.ObjectId(id),
+  //     isDeleted: { $ne: true },
+  //     $or: [
+  //       {
+  //         seller: user._id,
+  //       },
+  //       {
+  //         sellerAgent: user._id,
+  //       },
+  //     ],
+  //   });
+  //   if (!property) {
+  //     throw new NotFoundException('Property not found');
+  //   }
+  //   const positiveMessage = `published your property, you can now expect offers on your ${property.propertyName} property.`;
+  //   const negetiveMessage = `unpublished your property, there will be no new offers on your ${property.propertyName} property.`;
+  //   if (
+  //     [
+  //       PropertyStatusEnum.properyOwnershipVerified,
+  //       PropertyStatusEnum.unpublished,
+  //     ].includes(property.currentStatus as PropertyStatusEnum) &&
+  //     publish
+  //   ) {
+  //     const update = await this.propertyModel.findByIdAndUpdate(
+  //       id,
+  //       {
+  //         currentStatus: PropertyStatusEnum.nowShowing,
+  //         $push: {
+  //           status: {
+  //             status: PropertyStatusEnum.nowShowing,
+  //             eventTime: new Date(),
+  //           },
+  //         },
+  //       },
+  //       { new: true },
+  //     );
+
+  //     if (property.sellerAgent) {
+  //       // await this.notificationModel.create({
+  //       //   body: `${user.fullname}, just ${publish ? positiveMessage : negetiveMessage}`,
+  //       //   title: `${user.fullname}, just ${publish ? 'published' : 'unpublished'} your property.`,
+  //       //   user: property.sellerAgent as any,
+  //       //   userType: NotificationUserType.agent,
+  //       // });
+  //     }
+  //     if (property.seller) {
+  //       // await this.notificationModel.create({
+  //       //   body: `${user.fullname}, just ${publish ? positiveMessage : negetiveMessage}`,
+  //       //   title: `${user.fullname}, just ${publish ? 'published' : 'unpublished'} your property.`,
+  //       //   user: property.seller as any,
+  //       //   userType: NotificationUserType.user,
+  //       // });
+  //     }
+  //     return update;
+  //   }
+  //   if (property.currentStatus == PropertyStatusEnum.nowShowing && !publish) {
+  //     const update = await this.propertyModel.findByIdAndUpdate(
+  //       id,
+  //       {
+  //         currentStatus: PropertyStatusEnum.unpublished,
+  //         $push: {
+  //           status: {
+  //             status: PropertyStatusEnum.unpublished,
+  //             eventTime: new Date(),
+  //           },
+  //         },
+  //       },
+  //       { new: true },
+  //     );
+  //     if (property.sellerAgent) {
+  //       // await this.notificationModel.create({
+  //       //   body: `${user.fullname}, just ${publish ? positiveMessage : negetiveMessage}`,
+  //       //   title: `${user.fullname}, just ${publish ? 'published' : 'unpublished'} your property.`,
+  //       //   user: property.sellerAgent as any,
+  //       //   userType: NotificationUserType.agent,
+  //       // });
+  //     }
+  //     if (property.seller) {
+  //       // await this.notificationModel.create({
+  //       //   body: `${user.fullname}, just ${publish ? positiveMessage : negetiveMessage}`,
+  //       //   title: `${user.fullname}, just ${publish ? 'published' : 'unpublished'} your property.`,
+  //       //   user: property.seller as any,
+  //       //   userType: NotificationUserType.user,
+  //       // });
+  //     }
+  //     return update;
+  //   }
+  //   throw new BadRequestException(
+  //     'You can not publish this property at this time.',
+  //   );
+  // }
 
   async getOfferComment(
     paginationDto: PaginationDto,
