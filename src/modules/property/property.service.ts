@@ -884,44 +884,44 @@ export class PropertyService {
   }
 
   async agentOrSellerUpdateTourSchedule(
-  id: string,
-  user: User | Agent,
-  dto: UpdatePropertyTourScheduleDto,
-) {
-  const propertyTourSchedule = await this.propertyTourScheduleModel.findOne({
-    _id: new Types.ObjectId(id),
-    $or: [
-      { seller: user._id },
-      { sellerAgent: user._id },
-    ],
-  });
+    id: string,
+    user: User | Agent,
+    dto: UpdatePropertyTourScheduleDto,
+  ) {
+    const propertyTourSchedule = await this.propertyTourScheduleModel.findOne({
+      _id: new Types.ObjectId(id),
+      $or: [{ seller: user._id }, { sellerAgent: user._id }],
+    });
 
-  if (!propertyTourSchedule) {
-    throw new NotFoundException('Property Tour Schedule not found.');
+    if (!propertyTourSchedule) {
+      throw new NotFoundException('Property Tour Schedule not found.');
+    }
+
+    const isSeller =
+      propertyTourSchedule.seller?.toString() === user._id.toString();
+
+    const updatedSchedule = await this.propertyTourScheduleModel
+      .findByIdAndUpdate(propertyTourSchedule._id, dto, { new: true })
+      .populate('property')
+      .populate('seller')
+      .populate('sellerAgent')
+      .exec();
+
+    await this.notificationService.createNotification({
+      title: 'Property Tour Updated',
+      body: `${user.fullname} has updated a scheduled property tour.`,
+      user: user._id.toString(),
+      userType: isSeller
+        ? NotificationUserType.user
+        : NotificationUserType.agent,
+      otherId: updatedSchedule._id.toString(),
+      notificationType: isSeller
+        ? NotificationType.USER
+        : NotificationType.AGENT,
+    });
+
+    return updatedSchedule;
   }
-
-  const isSeller = propertyTourSchedule.seller?.toString() === user._id.toString();
-
-  const updatedSchedule = await this.propertyTourScheduleModel
-    .findByIdAndUpdate(propertyTourSchedule._id, dto, { new: true })
-    .populate('property')
-    .populate('seller')
-    .populate('sellerAgent')
-    .exec();
-
-  await this.notificationService.createNotification({
-    title: 'Property Tour Updated',
-    body: `${user.fullname} has updated a scheduled property tour.`,
-    user: user._id.toString(),
-    userType: isSeller ? NotificationUserType.user : NotificationUserType.agent,
-    otherId: updatedSchedule._id.toString(),
-    notificationType: isSeller ? NotificationType.USER : NotificationType.AGENT,
-  });
-
-  return updatedSchedule;
-}
-
-
 
   async agentOrSellerDeleteTourSchedule(id: string, user: User | Agent) {
     const propertyTourSchedule = await this.propertyTourScheduleModel.findOne({
@@ -1068,98 +1068,100 @@ export class PropertyService {
     return { result: data, total, page, limit };
   }
 
-
   async sellerOrAgentPublishOrUnpublishProperty(
-  id: string,
-  user: User | Agent,
-  dto: SellerOrAgentPublishPropertyDto,
-) {
-  const { publish } = dto;
-
-  const property = await this.propertyModel.findOne({
-    _id: new Types.ObjectId(id),
-    isDeleted: { $ne: true },
-    $or: [
-      { seller: user._id },
-      { sellerAgent: user._id },
-    ],
-  });
-
-  if (!property) {
-    throw new NotFoundException('Property not found');
-  }
-
-  const isSeller = property.seller?.toString() === user._id.toString();
-  const action = publish ? 'published' : 'unpublished';
-  const message = publish
-    ? `published your property. You can now expect offers on "${property.propertyName}".`
-    : `unpublished your property. There will be no new offers on "${property.propertyName}".`;
-
-  let update: any = null;
-
-  if (
-    publish &&
-    [PropertyStatusEnum.properyOwnershipVerified, PropertyStatusEnum.unpublished].includes(
-      property.currentStatus as PropertyStatusEnum,
-    )
+    id: string,
+    user: User | Agent,
+    dto: SellerOrAgentPublishPropertyDto,
   ) {
-    update = await this.propertyModel.findByIdAndUpdate(
-      id,
-      {
-        currentStatus: PropertyStatusEnum.nowShowing,
-        $push: {
-          status: {
-            status: PropertyStatusEnum.nowShowing,
-            eventTime: new Date(),
-          },
-        },
-      },
-      { new: true },
-    );
-  } else if (property.currentStatus === PropertyStatusEnum.nowShowing && !publish) {
-    update = await this.propertyModel.findByIdAndUpdate(
-      id,
-      {
-        currentStatus: PropertyStatusEnum.unpublished,
-        $push: {
-          status: {
-            status: PropertyStatusEnum.unpublished,
-            eventTime: new Date(),
-          },
-        },
-      },
-      { new: true },
-    );
-  }
+    const { publish } = dto;
 
-  if (!update) {
-    throw new BadRequestException('You cannot publish or unpublish this property at this time.');
-  }
+    const property = await this.propertyModel.findOne({
+      _id: new Types.ObjectId(id),
+      isDeleted: { $ne: true },
+      $or: [{ seller: user._id }, { sellerAgent: user._id }],
+    });
 
-  // Send notification to both seller and agent if present
-  const notificationTargets = [
-    { user: property.seller, userType: NotificationUserType.user },
-    { user: property.sellerAgent, userType: NotificationUserType.agent },
-  ];
-
-  for (const target of notificationTargets) {
-    if (target.user) {
-      await this.notificationService.createNotification({
-        title: `Property ${publish ? 'Published' : 'Unpublished'}`,
-        body: `${user.fullname} has ${message}`,
-        user: target.user.toString(),
-        userType: target.userType,
-        otherId: property._id.toString(),
-        notificationType: target.userType === NotificationUserType.user
-          ? NotificationType.USER
-          : NotificationType.AGENT,
-      });
+    if (!property) {
+      throw new NotFoundException('Property not found');
     }
+
+    const isSeller = property.seller?.toString() === user._id.toString();
+    const action = publish ? 'published' : 'unpublished';
+    const message = publish
+      ? `published your property. You can now expect offers on "${property.propertyName}".`
+      : `unpublished your property. There will be no new offers on "${property.propertyName}".`;
+
+    let update: any = null;
+
+    if (
+      publish &&
+      [
+        PropertyStatusEnum.properyOwnershipVerified,
+        PropertyStatusEnum.unpublished,
+      ].includes(property.currentStatus as PropertyStatusEnum)
+    ) {
+      update = await this.propertyModel.findByIdAndUpdate(
+        id,
+        {
+          currentStatus: PropertyStatusEnum.nowShowing,
+          $push: {
+            status: {
+              status: PropertyStatusEnum.nowShowing,
+              eventTime: new Date(),
+            },
+          },
+        },
+        { new: true },
+      );
+    } else if (
+      property.currentStatus === PropertyStatusEnum.nowShowing &&
+      !publish
+    ) {
+      update = await this.propertyModel.findByIdAndUpdate(
+        id,
+        {
+          currentStatus: PropertyStatusEnum.unpublished,
+          $push: {
+            status: {
+              status: PropertyStatusEnum.unpublished,
+              eventTime: new Date(),
+            },
+          },
+        },
+        { new: true },
+      );
+    }
+
+    if (!update) {
+      throw new BadRequestException(
+        'You cannot publish or unpublish this property at this time.',
+      );
+    }
+
+    // Send notification to both seller and agent if present
+    const notificationTargets = [
+      { user: property.seller, userType: NotificationUserType.user },
+      { user: property.sellerAgent, userType: NotificationUserType.agent },
+    ];
+
+    for (const target of notificationTargets) {
+      if (target.user) {
+        await this.notificationService.createNotification({
+          title: `Property ${publish ? 'Published' : 'Unpublished'}`,
+          body: `${user.fullname} has ${message}`,
+          user: target.user.toString(),
+          userType: target.userType,
+          otherId: property._id.toString(),
+          notificationType:
+            target.userType === NotificationUserType.user
+              ? NotificationType.USER
+              : NotificationType.AGENT,
+        });
+      }
+    }
+
+    return update;
   }
-
-  return update;
-}
-
 
   // async sellerOrAgentPublishOrUnpublishProperty(
   //   id: string,

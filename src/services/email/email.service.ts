@@ -55,13 +55,13 @@ export class EmailService {
       //   user: configs.EMAIL_USERNAME,
       //   pass: configs.EMAIL_PASSWORD,
       // },
-      host: configs.EMAIL_HOST, // Should be `smtp-mail.outlook.com`
-      port: parseInt(configs.EMAIL_PORT || '587'), // Use 587 (not 465)
-      secure: false, // Required for port 587 (STARTTLS)
-      requireTLS: true, // Enforce TLS encryption
+      host: 'smtp.office365.com',
+      port: 587,
+      secure: false, // Required for STARTTLS
+      requireTLS: true, // MUST enable TLS
       auth: {
-        user: configs.EMAIL_USERNAME,
-        pass: configs.EMAIL_PASSWORD,
+        user: 'support@snaphomz.com',
+        pass: 'yyyrrrrkktktjtql',
       },
     });
 
